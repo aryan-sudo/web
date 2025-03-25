@@ -8,63 +8,59 @@ import Link from 'next/link'
 
 const links = [
     {
-        group: 'Product',
+        group: 'Platform',
         items: [
             {
-                title: 'Features',
+                title: 'Dashboard',
                 href: '#',
             },
             {
-                title: 'Solution',
+                title: 'Project Management',
                 href: '#',
             },
             {
-                title: 'Customers',
+                title: 'Requirements',
                 href: '#',
             },
             {
-                title: 'Pricing',
+                title: 'Task Management',
                 href: '#',
             },
             {
-                title: 'Help',
+                title: 'AI Code Generation',
                 href: '#',
             },
             {
-                title: 'About',
+                title: 'Analytics',
                 href: '#',
             },
         ],
     },
     {
-        group: 'Solution',
+        group: 'Solutions',
         items: [
             {
-                title: 'Startup',
+                title: 'For Enterprises',
                 href: '#',
             },
             {
-                title: 'Freelancers',
+                title: 'For Startups',
                 href: '#',
             },
             {
-                title: 'Organizations',
+                title: 'For Agencies',
                 href: '#',
             },
             {
-                title: 'Students',
+                title: 'For Open Source',
                 href: '#',
             },
             {
-                title: 'Collaboration',
+                title: 'Integrations',
                 href: '#',
             },
             {
-                title: 'Design',
-                href: '#',
-            },
-            {
-                title: 'Management',
+                title: 'Case Studies',
                 href: '#',
             },
         ],
@@ -93,24 +89,24 @@ const links = [
                 href: '#',
             },
             {
-                title: 'Help',
+                title: 'Help Center',
                 href: '#',
             },
         ],
     },
     {
-        group: 'Legal',
+        group: 'Resources',
         items: [
             {
-                title: 'Licence',
+                title: 'Documentation',
                 href: '#',
             },
             {
-                title: 'Privacy',
+                title: 'Privacy Policy',
                 href: '#',
             },
             {
-                title: 'Cookies',
+                title: 'Terms of Service',
                 href: '#',
             },
             {
@@ -193,7 +189,7 @@ export default function FooterSection() {
                     </form>
                 </div>
                 <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-t py-6">
-                    <small className="text-muted-foreground order-last block text-center text-sm md:order-first">© {new Date().getFullYear()} Tailus UI, All rights reserved</small>
+                    <small className="text-muted-foreground order-last block text-center text-sm md:order-first">© {new Date().getFullYear()} FlowPilot SDLC, All rights reserved</small>
                     <form action="">
                         <div className="relative">
                             <ChevronsUpDown className="pointer-events-none absolute inset-y-0 right-2 my-auto opacity-75" size="0.75rem" />

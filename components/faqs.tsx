@@ -8,35 +8,36 @@ export default function FAQs() {
                             Frequently <br className="hidden lg:block" /> Asked <br className="hidden lg:block" />
                             Questions
                         </h2>
-                        <p>Accusantium quisquam. Illo, omnis?</p>
+                        <p>Common questions about FlowPilot platform</p>
                     </div>
 
                     <div className="divide-y divide-dashed sm:mx-auto sm:max-w-lg lg:mx-0">
                         <div className="pb-6">
-                            <h3 className="font-medium">What is the refund policy?</h3>
-                            <p className="text-muted-foreground mt-4">We offer a 30-day money back guarantee. If you are not satisfied with our product, you can request a refund within 30 days of your purchase.</p>
+                            <h3 className="font-medium">How does the AI code generation work?</h3>
+                            <p className="text-muted-foreground mt-4">FlowPilot&apos;s AI code generation analyzes your requirements and project context to generate high-quality, secure code that follows your team&apos;s conventions and best practices.</p>
 
                             <ol className="list-outside list-decimal space-y-2 pl-4">
-                                <li className="text-muted-foreground mt-4">To request a refund, please contact our support team with your order number and reason for the refund.</li>
-                                <li className="text-muted-foreground mt-4">Refunds will be processed within 3-5 business days.</li>
-                                <li className="text-muted-foreground mt-4">Please note that refunds are only available for new customers and are limited to one per customer.</li>
+                                <li className="text-muted-foreground mt-4">The AI learns from your codebase to understand your coding styles and patterns.</li>
+                                <li className="text-muted-foreground mt-4">It generates code based on requirements you specify in natural language.</li>
+                                <li className="text-muted-foreground mt-4">The platform provides explanations for the generated code and allows for easy customization.</li>
                             </ol>
                         </div>
                         <div className="py-6">
-                            <h3 className="font-medium">How do I cancel my subscription?</h3>
-                            <p className="text-muted-foreground mt-4">You can cancel your subscription at any time by logging into your account and clicking on the cancel button.</p>
+                            <h3 className="font-medium">Can FlowPilot integrate with my existing tools?</h3>
+                            <p className="text-muted-foreground mt-4">Yes, FlowPilot integrates with popular version control systems, project management tools, and CI/CD pipelines including GitHub, GitLab, Jira, Jenkins, and more.</p>
                         </div>
                         <div className="py-6">
-                            <h3 className="font-medium">Can I upgrade my plan?</h3>
-                            <p className="text-muted-foreground my-4">Yes, you can upgrade your plan at any time by logging into your account and selecting the plan you want to upgrade to.</p>
+                            <h3 className="font-medium">How does the platform handle data security?</h3>
+                            <p className="text-muted-foreground my-4">We take data security very seriously and have implemented multiple layers of protection for your code and project information.</p>
                             <ul className="list-outside list-disc space-y-2 pl-4">
-                                <li className="text-muted-foreground">You will be charged the difference in price between your current plan and the plan you are upgrading to.</li>
-                                <li className="text-muted-foreground">Your new plan will take effect immediately and you will be billed at the new rate on your next billing cycle.</li>
+                                <li className="text-muted-foreground">All data is encrypted in transit and at rest.</li>
+                                <li className="text-muted-foreground">We offer role-based access controls to ensure only authorized team members can access sensitive information.</li>
+                                <li className="text-muted-foreground">Enterprise plans include additional security features like single sign-on, audit logs, and custom data retention policies.</li>
                             </ul>
                         </div>
                         <div className="py-6">
-                            <h3 className="font-medium">Do you offer phone support?</h3>
-                            <p className="text-muted-foreground mt-4">We do not offer phone support at this time. However, you can contact us via email or live chat for any questions or concerns you may have.</p>
+                            <h3 className="font-medium">What kind of support do you offer?</h3>
+                            <p className="text-muted-foreground mt-4">We offer different levels of support based on your plan. All customers receive email support, while Team and Enterprise plans include priority support with faster response times. Enterprise customers also receive a dedicated account manager and 24/7 technical support.</p>
                         </div>
                     </div>
                 </div>

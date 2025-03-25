@@ -1,6 +1,6 @@
 'use client'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { ChartBarIncreasingIcon, Database, Fingerprint, IdCard } from 'lucide-react'
+import { ChartBarIncreasingIcon, Code, Puzzle, Workflow } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -13,19 +13,19 @@ export default function Features() {
     const images = {
         'item-1': {
             image: '/charts.png',
-            alt: 'Database visualization',
+            alt: 'AI-Powered Project Planning',
         },
         'item-2': {
             image: '/music.png',
-            alt: 'Security authentication',
+            alt: 'Intelligent Code Generation',
         },
         'item-3': {
             image: '/mail2.png',
-            alt: 'Identity management',
+            alt: 'Requirements Management',
         },
         'item-4': {
             image: '/payments.png',
-            alt: 'Analytics dashboard',
+            alt: 'Predictive Analytics',
         },
     }
 
@@ -34,8 +34,8 @@ export default function Features() {
             <div className="bg-linear-to-b absolute inset-0 -z-10 sm:inset-6 sm:rounded-b-3xl dark:block dark:to-[color-mix(in_oklab,var(--color-zinc-900)_75%,var(--color-background))]"></div>
             <div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16 lg:space-y-20 dark:[--color-border:color-mix(in_oklab,var(--color-white)_10%,transparent)]">
                 <div className="relative z-10 mx-auto max-w-2xl space-y-6 text-center">
-                    <h2 className="text-balance text-4xl font-semibold lg:text-6xl">The foundation for AI</h2>
-                    <p>Lyra is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</p>
+                    <h2 className="text-balance text-4xl font-semibold lg:text-6xl">Revolutionize Your SDLC</h2>
+                    <p>FlowPilot is a complete AI-powered platform that transforms every stage of the software development lifecycle, helping teams deliver higher quality software faster and more efficiently.</p>
                 </div>
 
                 <div className="grid gap-12 sm:px-12 md:grid-cols-2 lg:gap-20 lg:px-0">
@@ -47,38 +47,38 @@ export default function Features() {
                         <AccordionItem value="item-1">
                             <AccordionTrigger>
                                 <div className="flex items-center gap-2 text-base">
-                                    <Database className="size-4" />
-                                    Database Visualization
+                                    <Workflow className="size-4" />
+                                    AI-Powered Project Planning
                                 </div>
                             </AccordionTrigger>
-                            <AccordionContent>Lyra is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</AccordionContent>
+                            <AccordionContent>Intelligent project planning that uses AI to estimate tasks, identify dependencies, and optimize resource allocation for maximum efficiency and predictable delivery.</AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-2">
                             <AccordionTrigger>
                                 <div className="flex items-center gap-2 text-base">
-                                    <Fingerprint className="size-4" />
-                                    Advanced Authentication
+                                    <Code className="size-4" />
+                                    Intelligent Code Generation
                                 </div>
                             </AccordionTrigger>
-                            <AccordionContent>Lyra is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</AccordionContent>
+                            <AccordionContent>Accelerate development with AI that generates high-quality, secure code based on your requirements, saving development time and reducing errors.</AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-3">
                             <AccordionTrigger>
                                 <div className="flex items-center gap-2 text-base">
-                                    <IdCard className="size-4" />
-                                    Identity Management
+                                    <Puzzle className="size-4" />
+                                    Requirements Management
                                 </div>
                             </AccordionTrigger>
-                            <AccordionContent>Lyra is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</AccordionContent>
+                            <AccordionContent>Smart requirements analysis that helps transform stakeholder needs into clear, actionable development tasks with automatic validation and traceability.</AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-4">
                             <AccordionTrigger>
                                 <div className="flex items-center gap-2 text-base">
                                     <ChartBarIncreasingIcon className="size-4" />
-                                    Analytics Dashboard
+                                    Predictive Analytics
                                 </div>
                             </AccordionTrigger>
-                            <AccordionContent>Lyra is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</AccordionContent>
+                            <AccordionContent>Advanced analytics with AI-powered insights that help predict project risks, identify bottlenecks, and provide recommendations for continuous improvement.</AccordionContent>
                         </AccordionItem>
                     </Accordion>
 
