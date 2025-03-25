@@ -36,7 +36,7 @@ export default function ContactSection() {
                 <div className="h-3 border-x bg-[repeating-linear-gradient(-45deg,var(--color-border),var(--color-border)_1px,transparent_1px,transparent_6px)]"></div>
                 <form action="" className="border px-4 py-12 lg:px-0 lg:py-24">
                     <Card className="mx-auto max-w-lg p-8 sm:p-16">
-                        <h3 className="text-xl font-semibold">Let's get you to the right place</h3>
+                        <h3 className="text-xl font-semibold">Let&apos;s get you to the right place</h3>
                         <p className="mt-4 text-sm">Reach out to our sales team! We’re eager to learn more about how you plan to use our application.</p>
 
                         <div className="**:[&>label]:block mt-12 space-y-6 *:space-y-3">
