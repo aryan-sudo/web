@@ -2,17 +2,20 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
+  Code,
+  FileCode,
+  Layers,
   PieChart,
   Settings2,
-  SquareTerminal,
+  Kanban,
+  Users,
+  Puzzle,
+  GanttChart,
+  Briefcase,
+  CheckSquare,
+  GitBranch,
 } from "lucide-react"
+import { useUser } from "@clerk/nextjs"
 
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
@@ -26,89 +29,137 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
+// This is sample data for the sidebar navigation
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
+      name: "FlowPilot",
+      logo: Layers,
       plan: "Enterprise",
     },
     {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
+      name: "DevTeam",
+      logo: GitBranch,
+      plan: "Team",
     },
     {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      name: "Personal",
+      logo: Briefcase,
+      plan: "Starter",
     },
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
       url: "#",
-      icon: SquareTerminal,
+      icon: PieChart,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Overview",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Analytics",
           url: "#",
         },
         {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Reports",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Project Management",
       url: "#",
-      icon: BookOpen,
+      icon: GanttChart,
       items: [
         {
-          title: "Introduction",
+          title: "Projects",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Planning",
           url: "#",
         },
         {
-          title: "Tutorials",
+          title: "Resource Allocation",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Requirements",
+      url: "#",
+      icon: Puzzle,
+      items: [
+        {
+          title: "Requirements List",
           url: "#",
         },
         {
-          title: "Changelog",
+          title: "Analysis",
+          url: "#",
+        },
+        {
+          title: "Tracking",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Tasks",
+      url: "#",
+      icon: Kanban,
+      items: [
+        {
+          title: "Kanban Board",
+          url: "#",
+        },
+        {
+          title: "Dependencies",
+          url: "#",
+        },
+        {
+          title: "My Tasks",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Code Generation",
+      url: "#",
+      icon: Code,
+      items: [
+        {
+          title: "Generate Code",
+          url: "#",
+        },
+        {
+          title: "Code Review",
+          url: "#",
+        },
+        {
+          title: "Templates",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Collaboration",
+      url: "#",
+      icon: Users,
+      items: [
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Communications",
+          url: "#",
+        },
+        {
+          title: "Workspace",
           url: "#",
         },
       ],
@@ -119,19 +170,19 @@ const data = {
       icon: Settings2,
       items: [
         {
-          title: "General",
+          title: "User Profile",
           url: "#",
         },
         {
-          title: "Team",
+          title: "Organization",
           url: "#",
         },
         {
-          title: "Billing",
+          title: "Integrations",
           url: "#",
         },
         {
-          title: "Limits",
+          title: "Security",
           url: "#",
         },
       ],
@@ -139,24 +190,37 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Web Platform",
       url: "#",
-      icon: Frame,
+      icon: FileCode,
     },
     {
-      name: "Sales & Marketing",
+      name: "Mobile Application",
       url: "#",
-      icon: PieChart,
+      icon: Layers,
     },
     {
-      name: "Travel",
+      name: "API Development",
       url: "#",
-      icon: Map,
+      icon: CheckSquare,
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useUser()
+  
+  // User fallback for when Clerk hasn't loaded yet
+  const userData = user ? {
+    name: user.fullName || user.username || "User",
+    email: user.primaryEmailAddress?.emailAddress || "",
+    avatar: user.imageUrl || "",
+  } : {
+    name: "Loading...",
+    email: "",
+    avatar: "",
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -167,9 +231,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )
 }
+
