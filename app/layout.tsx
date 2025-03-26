@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://flowpilot.ai",
+    url: "https://flowpilot.aryanp.in",
     siteName: "FlowPilot",
     title: "FlowPilot - AI-Powered Software Development Platform",
     description: "Transform your software development with FlowPilot's AI-powered platform. Streamline planning, development, and deployment with intelligent tools for better collaboration and efficiency.",
@@ -68,9 +68,9 @@ export const metadata: Metadata = {
     yahoo: "your-yahoo-verification",
   },
   alternates: {
-    canonical: "https://flowpilot.ai",
+    canonical: "https://flowpilot.aryanp.in",
     languages: {
-      'en-US': "https://flowpilot.ai",
+      'en-US': "https://flowpilot.aryanp.in",
     },
   },
   manifest: "/site.webmanifest",

@@ -7,7 +7,10 @@ import {
   CreditCard,
   LogOut,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react"
+import { useTheme } from "next-themes"
 
 import {
   Avatar,
@@ -41,6 +44,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
 
   // Generate initials from name for avatar fallback
   const initials = user.name
@@ -108,6 +112,10 @@ export function NavUser({
               <DropdownMenuItem>
                 <Bell />
                 Notifications
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {theme === "dark" ? "Light Mode" : "Dark Mode"}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
