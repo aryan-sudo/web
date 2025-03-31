@@ -1,5 +1,5 @@
-import ContentSection from "./components/content-2";
-import CommunitySection from "./components/content-6";
+import ContentSection from "./components/product-overview";
+import CommunitySection from "./components/developer-community";
 
 export default function About() {
   return (

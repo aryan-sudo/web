@@ -1,6 +1,6 @@
 import React from "react";
 import FooterSection from "@/components/layout/footer";
-import { HeroHeader } from "@/components/layout/hero5-header";
+import { MarketingHeader } from "@/components/layout/marketing-header";
 
 export default function MarketingLayout({
   children,
@@ -9,7 +9,7 @@ export default function MarketingLayout({
 }) {
   return (
     <>
-      <HeroHeader />
+      <MarketingHeader />
       <main>{children}</main>
       <FooterSection />
     </>

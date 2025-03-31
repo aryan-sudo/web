@@ -1,4 +1,4 @@
-import Features from "./components/features-list";
+import Features from "./components/product-features";
 
 export default function FeaturesPage() {
   return (
