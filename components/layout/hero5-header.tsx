@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/providers/theme-toggle'
 
 const menuItems = [
+    { name: 'Home', href: '/' },
     { name: 'Features', href: '/features' },
-    { name: 'Solution', href: '/solution' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'About', href: '/about' },
 ]

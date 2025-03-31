@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { TextEffect } from '@/components/motion-primitives/text-effect'
 import { AnimatedGroup } from '@/components/motion-primitives/animated-group'
-import { HeroHeader } from '@/components/layout/hero5-header'
 
 const transitionVariants = {
     item: {
@@ -30,7 +29,6 @@ const transitionVariants = {
 export default function HeroSection() {
     return (
         <>
-            <HeroHeader />
             <main className="overflow-hidden">
                 <div
                     aria-hidden
