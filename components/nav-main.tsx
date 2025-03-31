@@ -29,6 +29,7 @@ export function NavMain({
     items?: {
       title: string
       url: string
+      description?: string
       component?: React.ComponentType
     }[]
   }[]

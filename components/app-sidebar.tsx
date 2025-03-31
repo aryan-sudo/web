@@ -3,22 +3,24 @@
 import * as React from "react"
 import {
   Code,
-  FileCode,
+  // FileCode,
   Layers,
   PieChart,
   Settings2,
   Kanban,
   Users,
-  Puzzle,
+  FileText,
+  Calendar,
   GanttChart,
   Briefcase,
-  CheckSquare,
+  // CheckSquare,
   GitBranch,
+  UserPlus,
 } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
+// import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -32,21 +34,9 @@ import {
 // This is sample data for the sidebar navigation
 const data = {
   teams: [
-    {
-      name: "FlowPilot",
-      logo: Layers,
-      plan: "Enterprise",
-    },
-    {
-      name: "DevTeam",
-      logo: GitBranch,
-      plan: "Team",
-    },
-    {
-      name: "Personal",
-      logo: Briefcase,
-      plan: "Starter",
-    },
+    { name: "FlowPilot", logo: Layers, plan: "Enterprise" },
+    { name: "DevTeam", logo: GitBranch, plan: "Team" },
+    { name: "Personal", logo: Briefcase, plan: "Starter" },
   ],
   navMain: [
     {
@@ -55,18 +45,39 @@ const data = {
       icon: PieChart,
       isActive: true,
       items: [
-        {
-          title: "Overview",
-          url: "#",
-        },
-        {
-          title: "Analytics",
-          url: "#",
-        },
-        {
-          title: "Reports",
-          url: "#",
-        },
+        { title: "Overview", url: "#" },
+        { title: "Analytics", url: "#" },
+        { title: "Reports", url: "#" },
+      ],
+    },
+    {
+      title: "Client Acquisition",
+      url: "#",
+      icon: UserPlus,
+      items: [
+        { title: "Inquiries", url: "#" },
+        { title: "Lead Processing", url: "#" },
+        { title: "Client Communications", url: "#" },
+      ],
+    },
+    {
+      title: "Proposals & Contracts",
+      url: "#",
+      icon: FileText,
+      items: [
+        { title: "Proposals & Estimates", url: "#" },
+        { title: "Contract Generation", url: "#" },
+        { title: "Approval Workflow", url: "#" },
+      ],
+    },
+    {
+      title: "Project Kickoff",
+      url: "#",
+      icon: Calendar,
+      items: [
+        { title: "Project Setup", url: "#" },
+        { title: "Resource Allocation", url: "#" },
+        { title: "Sprint Planning", url: "#" },
       ],
     },
     {
@@ -74,37 +85,8 @@ const data = {
       url: "#",
       icon: GanttChart,
       items: [
-        {
-          title: "Projects",
-          url: "#",
-        },
-        {
-          title: "Planning",
-          url: "#",
-        },
-        {
-          title: "Resource Allocation",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Requirements",
-      url: "#",
-      icon: Puzzle,
-      items: [
-        {
-          title: "Requirements List",
-          url: "#",
-        },
-        {
-          title: "Analysis",
-          url: "#",
-        },
-        {
-          title: "Tracking",
-          url: "#",
-        },
+        { title: "Projects", url: "#" },
+        { title: "Milestones", url: "#" },
       ],
     },
     {
@@ -112,18 +94,10 @@ const data = {
       url: "#",
       icon: Kanban,
       items: [
-        {
-          title: "Kanban Board",
-          url: "#",
-        },
-        {
-          title: "Dependencies",
-          url: "#",
-        },
-        {
-          title: "My Tasks",
-          url: "#",
-        },
+        { title: "Kanban Board", url: "#" },
+        { title: "Dependencies", url: "#" },
+        { title: "My Tasks", url: "#" },
+        { title: "Tracking", url: "#" }, // Moved from "Project Management"
       ],
     },
     {
@@ -131,18 +105,9 @@ const data = {
       url: "#",
       icon: Code,
       items: [
-        {
-          title: "Generate Code",
-          url: "#",
-        },
-        {
-          title: "Code Review",
-          url: "#",
-        },
-        {
-          title: "Templates",
-          url: "#",
-        },
+        { title: "Generate Code", url: "#" },
+        { title: "Code Review", url: "#" },
+        { title: "Templates", url: "#" },
       ],
     },
     {
@@ -150,18 +115,9 @@ const data = {
       url: "#",
       icon: Users,
       items: [
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Communications",
-          url: "#",
-        },
-        {
-          title: "Workspace",
-          url: "#",
-        },
+        { title: "Team", url: "#" },
+        { title: "Communications", url: "#" },
+        { title: "Workspace", url: "#" },
       ],
     },
     {
@@ -169,43 +125,20 @@ const data = {
       url: "#",
       icon: Settings2,
       items: [
-        {
-          title: "User Profile",
-          url: "#",
-        },
-        {
-          title: "Organization",
-          url: "#",
-        },
-        {
-          title: "Integrations",
-          url: "#",
-        },
-        {
-          title: "Security",
-          url: "#",
-        },
+        { title: "User Profile", url: "#" },
+        { title: "Organization", url: "#" },
+        { title: "Integrations", url: "#" },
+        { title: "Security", url: "#" },
       ],
     },
   ],
-  projects: [
-    {
-      name: "Web Platform",
-      url: "#",
-      icon: FileCode,
-    },
-    {
-      name: "Mobile Application",
-      url: "#",
-      icon: Layers,
-    },
-    {
-      name: "API Development",
-      url: "#",
-      icon: CheckSquare,
-    },
-  ],
-}
+  // projects: [
+  //   { name: "Web Platform", url: "#", icon: FileCode },
+  //   { name: "Mobile Application", url: "#", icon: Layers },
+  //   { name: "API Development", url: "#", icon: CheckSquare },
+  // ],
+};
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser()
@@ -228,7 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />
