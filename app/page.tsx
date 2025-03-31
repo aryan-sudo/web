@@ -1,5 +1,5 @@
-import FooterSection from "@/components/footer";
-import HeroSection from "@/components/hero-section";
+import FooterSection from "@/components/layout/footer";
+import HeroSection from "@/components/common/hero-section";
 
 export default function Home() {
   return (
@@ -8,4 +8,4 @@ export default function Home() {
       <FooterSection />
     </div>
   );
-}
+} 
