@@ -119,12 +119,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              <SignOutButton>
+            <SignOutButton>
+              <DropdownMenuItem>
+                <LogOut />
                 Log out
-              </SignOutButton>
-            </DropdownMenuItem>
+              </DropdownMenuItem>
+            </SignOutButton>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
