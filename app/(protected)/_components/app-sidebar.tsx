@@ -22,7 +22,7 @@ import { useUser } from "@clerk/nextjs"
 import { NavMain } from "@/components/layout/nav/nav-main"
 // import { NavProjects } from "@/components/layout/nav/nav-projects"
 import { NavUser } from "@/components/layout/nav/nav-user"
-import { TeamSwitcher } from "@/components/dashboard/team-switcher"
+import { TeamSwitcher } from "@/app/(protected)/_components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
