@@ -51,14 +51,9 @@ const data = {
       ],
     },
     {
-      title: "Client Acquisition",
+      title: "Lead Processing",
       url: "#",
       icon: UserPlus,
-      items: [
-        { title: "Inquiries", url: "#" },
-        { title: "Lead Processing", url: "#" },
-        { title: "Client Communications", url: "#" },
-      ],
     },
     {
       title: "Proposals & Contracts",
@@ -160,7 +155,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} essentialItemTitle="Lead Processing" />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>

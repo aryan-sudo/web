@@ -20,6 +20,7 @@ import {
 
 export function NavMain({
   items,
+  essentialItemTitle,
 }: {
   items: {
     title: string
@@ -33,50 +34,73 @@ export function NavMain({
       component?: React.ComponentType
     }[]
   }[]
+  essentialItemTitle?: string
 }) {
+  // Find and separate the essential item
+  const essentialItem = essentialItemTitle ? items.find(item => item.title === essentialItemTitle) : undefined;
+  const regularItems = essentialItemTitle ? items.filter(item => item.title !== essentialItemTitle) : items;
+  
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-          >
+    <>
+      {essentialItem && (
+        <SidebarGroup>
+          <SidebarGroupLabel>Essential Workflow</SidebarGroupLabel>
+          <SidebarMenu>
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      {subItem.component ? (
-                        <div className="flex items-center justify-between px-2 py-1">
-                          <span className="text-sm text-muted-foreground">{subItem.title}</span>
-                          <subItem.component />
-                        </div>
-                      ) : (
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </a>
-                        </SidebarMenuSubButton>
-                      )}
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
+              <SidebarMenuButton asChild tooltip={essentialItem.title}>
+                <a href={essentialItem.url}>
+                  {essentialItem.icon && <essentialItem.icon/>}
+                  <span>{essentialItem.title}</span>
+                </a>
+              </SidebarMenuButton>
             </SidebarMenuItem>
-          </Collapsible>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+          </SidebarMenu>
+        </SidebarGroup>
+      )}
+      
+      <SidebarGroup>
+        <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarMenu>
+          {regularItems.map((item) => (
+            <Collapsible
+              key={item.title}
+              asChild
+              defaultOpen={item.isActive}
+              className="group/collapsible"
+            >
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltip={item.title}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {item.items?.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        {subItem.component ? (
+                          <div className="flex items-center justify-between px-2 py-1">
+                            <span className="text-sm text-muted-foreground">{subItem.title}</span>
+                            <subItem.component />
+                          </div>
+                        ) : (
+                          <SidebarMenuSubButton asChild>
+                            <a href={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        )}
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
+    </>
   )
 }
