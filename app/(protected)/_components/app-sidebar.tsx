@@ -41,7 +41,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: "#",
       icon: PieChart,
       isActive: true,
       items: [
@@ -57,7 +57,7 @@ const data = {
     },
     {
       title: "Proposals & Contracts",
-      url: "/proposals",
+      url: "#",
       icon: FileText,
       items: [
         { title: "Proposals & Estimates", url: "/proposals/estimates" },
@@ -67,7 +67,7 @@ const data = {
     },
     {
       title: "Project Kickoff",
-      url: "/project-kickoff",
+      url: "#",
       icon: Calendar,
       items: [
         { title: "Project Setup", url: "/project-kickoff/setup" },
@@ -77,7 +77,7 @@ const data = {
     },
     {
       title: "Project Management",
-      url: "/project-management",
+      url: "#",
       icon: GanttChart,
       items: [
         { title: "Projects", url: "/project-management/projects" },
@@ -86,7 +86,7 @@ const data = {
     },
     {
       title: "Tasks",
-      url: "/tasks",
+      url: "#",
       icon: Kanban,
       items: [
         { title: "Kanban Board", url: "/tasks/kanban" },
@@ -97,7 +97,7 @@ const data = {
     },
     {
       title: "Code Generation",
-      url: "/code-generation",
+      url: "#",
       icon: Code,
       items: [
         { title: "Generate Code", url: "/code-generation/generate" },
@@ -107,7 +107,7 @@ const data = {
     },
     {
       title: "Collaboration",
-      url: "/collaboration",
+      url: "#",
       icon: Users,
       items: [
         { title: "Team", url: "/collaboration/team" },
@@ -117,7 +117,7 @@ const data = {
     },
     {
       title: "Settings",
-      url: "/settings",
+      url: "#",
       icon: Settings2,
       items: [
         { title: "User Profile", url: "/settings/profile" },
