@@ -4,10 +4,11 @@ import { Metadata } from "next"
 import Image from "next/image"
 import { z } from "zod"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
 
 import { columns } from "./_components/columns"
 import { DataTable } from "./_components/data-table"
-import { UserNav } from "./_components/user-nav"
 import { leadSchema } from "./data/schema"
 
 export const metadata: Metadata = {
@@ -56,7 +57,10 @@ export default async function LeadProcessingPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <UserNav />
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Lead
+            </Button>
           </div>
         </div>
 

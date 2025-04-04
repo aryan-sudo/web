@@ -32,6 +32,7 @@ export function NavMain({
       url: string
       description?: string
       component?: React.ComponentType
+      isActive?: boolean
     }[]
   }[]
   essentialItemTitle?: string
@@ -47,8 +48,15 @@ export function NavMain({
           <SidebarGroupLabel>Essential Workflow</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={essentialItem.title}>
-                <Link href={essentialItem.url}>
+              <SidebarMenuButton 
+                asChild 
+                tooltip={essentialItem.title} 
+                isActive={essentialItem.isActive}
+              >
+                <Link 
+                  href={essentialItem.url} 
+                  data-active={essentialItem.isActive}
+                >
                   {essentialItem.icon && <essentialItem.icon/>}
                   <span>{essentialItem.title}</span>
                 </Link>
@@ -70,7 +78,11 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
+                  <SidebarMenuButton 
+                    tooltip={item.title} 
+                    isActive={item.isActive}
+                    data-active={item.isActive}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -86,8 +98,11 @@ export function NavMain({
                             <subItem.component />
                           </div>
                         ) : (
-                          <SidebarMenuSubButton asChild>
-                            <Link href={subItem.url}>
+                          <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                            <Link 
+                              href={subItem.url}
+                              data-active={subItem.isActive}
+                            >
                               <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>

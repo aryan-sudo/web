@@ -18,6 +18,7 @@ import {
   UserPlus,
 } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
+import { usePathname } from "next/navigation"
 
 import { NavMain } from "@/components/layout/nav/nav-main"
 // import { NavProjects } from "@/components/layout/nav/nav-projects"
@@ -41,9 +42,8 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: PieChart,
-      isActive: true,
       items: [
         { title: "Overview", url: "/dashboard" },
         { title: "Analytics", url: "/dashboard/analytics" },
@@ -137,6 +137,46 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser()
+  const pathname = usePathname()
+  
+  // Update the navigation data with active states based on current path
+  const updatedNavMain = React.useMemo(() => {
+    // Helper function to check if a path is active
+    const isPathActive = (itemUrl: string) => {
+      if (itemUrl === "#") return false;
+      
+      // Remove any route group prefixes for comparison
+      const normalizedPath = pathname.replace(/^\/(protected)\//, "/");
+      const normalizedItemUrl = itemUrl.startsWith("/") ? itemUrl : `/${itemUrl}`;
+      
+      return normalizedPath === normalizedItemUrl || normalizedPath.startsWith(normalizedItemUrl);
+    };
+    
+    return data.navMain.map(item => {
+      // For items with sub-items
+      if (item.items) {
+        // Check if any child is active
+        const updatedItems = item.items.map(subItem => ({
+          ...subItem,
+          isActive: isPathActive(subItem.url)
+        }));
+        
+        const hasActiveChild = updatedItems.some(subItem => subItem.isActive);
+        
+        return {
+          ...item,
+          isActive: hasActiveChild || isPathActive(item.url),
+          items: updatedItems
+        }
+      }
+      
+      // For items without sub-items, directly check if current path matches
+      return {
+        ...item,
+        isActive: isPathActive(item.url)
+      }
+    })
+  }, [pathname])
   
   // User fallback for when Clerk hasn't loaded yet
   const userData = user ? {
@@ -155,7 +195,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} essentialItemTitle="Lead Processing" />
+        <NavMain items={updatedNavMain} essentialItemTitle="Lead Processing" />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
