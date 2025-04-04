@@ -3,30 +3,31 @@ import path from "path"
 import { Metadata } from "next"
 import Image from "next/image"
 import { z } from "zod"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { columns } from "./_components/columns"
 import { DataTable } from "./_components/data-table"
 import { UserNav } from "./_components/user-nav"
-import { taskSchema } from "./data/schema"
+import { leadSchema } from "./data/schema"
 
 export const metadata: Metadata = {
-  title: "Tasks",
-  description: "A task and issue tracker build using Tanstack Table.",
+  title: "Lead Processing",
+  description: "Manage and track leads through the sales pipeline.",
 }
 
-// Simulate a database read for tasks.
-async function getTasks() {
+// Simulate a database read for leads.
+async function getLeads() {
   const data = await fs.readFile(
-    path.join(process.cwd(), "app/(protected)/tasks/my-tasks/data/tasks.json")
+    path.join(process.cwd(), "app/(protected)/lead-processing/data/leads.json")
   )
 
-  const tasks = JSON.parse(data.toString())
+  const leads = JSON.parse(data.toString())
 
-  return z.array(taskSchema).parse(tasks)
+  return z.array(leadSchema).parse(leads)
 }
 
 export default async function LeadProcessingPage() {
-  const tasks = await getTasks()
+  const leads = await getLeads()
 
   return (
     <>
@@ -49,16 +50,32 @@ export default async function LeadProcessingPage() {
       <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Lead Processing</h2>
             <p className="text-muted-foreground">
-              Here&apos;s a list of your tasks for this month!
+              Manage and track potential client leads
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <UserNav />
           </div>
         </div>
-        <DataTable data={tasks} columns={columns} />
+
+        <Tabs defaultValue="lead-processing" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
+            <TabsTrigger value="lead-processing">Lead Processing</TabsTrigger>
+            <TabsTrigger value="client-communications">Client Communications</TabsTrigger>
+          </TabsList>
+          <TabsContent value="inquiries">
+            {/* Content for Inquiries tab */}
+          </TabsContent>
+          <TabsContent value="lead-processing">
+            <DataTable data={leads} columns={columns} />
+          </TabsContent>
+          <TabsContent value="client-communications">
+            {/* Content for Client Communications tab */}
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   )

@@ -1,71 +1,81 @@
 import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  CheckCircle,
-  Circle,
-  CircleOff,
+  ArrowUpRight,
+  CheckCircle2,
   HelpCircle,
-  Timer,
+  MessageSquare,
+  XCircle,
 } from "lucide-react"
 
-export const labels = [
-  {
-    value: "bug",
-    label: "Bug",
-  },
-  {
-    value: "feature",
-    label: "Feature",
-  },
-  {
-    value: "documentation",
-    label: "Documentation",
-  },
-]
-
+// Status data for leads
 export const statuses = [
   {
-    value: "backlog",
-    label: "Backlog",
+    value: "new",
+    label: "New",
     icon: HelpCircle,
   },
   {
-    value: "todo",
-    label: "Todo",
-    icon: Circle,
+    value: "contacted",
+    label: "Contacted",
+    icon: MessageSquare,
   },
   {
-    value: "in progress",
-    label: "In Progress",
-    icon: Timer,
+    value: "qualified",
+    label: "Qualified",
+    icon: CheckCircle2,
   },
   {
-    value: "done",
-    label: "Done",
-    icon: CheckCircle,
+    value: "proposal",
+    label: "Proposal",
+    icon: ArrowUpRight,
   },
   {
-    value: "canceled",
-    label: "Canceled",
-    icon: CircleOff,
+    value: "closed",
+    label: "Closed",
+    icon: CheckCircle2,
+  },
+  {
+    value: "lost",
+    label: "Lost",
+    icon: XCircle,
   },
 ]
 
-export const priorities = [
+// Lead sources
+export const sources = [
   {
-    label: "Low",
-    value: "low",
-    icon: ArrowDown,
+    value: "website",
+    label: "Website",
   },
   {
-    label: "Medium",
-    value: "medium",
-    icon: ArrowRight,
+    value: "referral",
+    label: "Referral",
   },
   {
-    label: "High",
-    value: "high",
-    icon: ArrowUp,
+    value: "conference",
+    label: "Conference",
+  },
+  {
+    value: "linkedin",
+    label: "LinkedIn",
+  },
+  {
+    value: "email",
+    label: "Email Campaign",
+  },
+  {
+    value: "trade_show",
+    label: "Trade Show",
+  },
+  {
+    value: "cold_call",
+    label: "Cold Call",
+  },
+  {
+    value: "social_media",
+    label: "Social Media",
+  },
+  {
+    value: "partner",
+    label: "Partner Referral",
   },
 ]

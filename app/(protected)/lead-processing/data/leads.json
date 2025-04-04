@@ -1,0 +1,242 @@
+[
+  {
+    "id": "LEAD-1841",
+    "name": "Lora Beier",
+    "company": "Lueilwitz - Kling",
+    "status": "proposal",
+    "source": "partner",
+    "lastContact": "2025-03-29"
+  },
+  {
+    "id": "LEAD-3922",
+    "name": "Clint Hagenes",
+    "company": "Considine - Bruen",
+    "status": "contacted",
+    "source": "social_media",
+    "lastContact": "2025-03-28"
+  },
+  {
+    "id": "LEAD-2140",
+    "name": "Marta MacGyver",
+    "company": "Maggio, McClure and Schmidt",
+    "status": "proposal",
+    "source": "social_media",
+    "lastContact": "2025-03-09"
+  },
+  {
+    "id": "LEAD-9994",
+    "name": "Lucia Runolfsdottir-Dach",
+    "company": "Gottlieb - Ankunding",
+    "status": "new",
+    "source": "partner",
+    "lastContact": "2025-03-21"
+  },
+  {
+    "id": "LEAD-2938",
+    "name": "Dr. Grady Dare",
+    "company": "Rolfson Inc",
+    "status": "new",
+    "source": "linkedin",
+    "lastContact": "2025-03-22"
+  },
+  {
+    "id": "LEAD-1893",
+    "name": "Holly Bailey",
+    "company": "Casper, Stracke and Thiel",
+    "status": "new",
+    "source": "partner",
+    "lastContact": "2025-03-18"
+  },
+  {
+    "id": "LEAD-9871",
+    "name": "Laura Hayes",
+    "company": "Sauer - Spinka",
+    "status": "closed",
+    "source": "website",
+    "lastContact": "2025-03-12"
+  },
+  {
+    "id": "LEAD-6880",
+    "name": "Estelle Lesch DDS",
+    "company": "Schinner Group",
+    "status": "proposal",
+    "source": "conference",
+    "lastContact": "2025-03-22"
+  },
+  {
+    "id": "LEAD-4135",
+    "name": "Owen Ullrich",
+    "company": "Block LLC",
+    "status": "qualified",
+    "source": "website",
+    "lastContact": "2025-04-02"
+  },
+  {
+    "id": "LEAD-8097",
+    "name": "Miss Sonja Boyer PhD",
+    "company": "Emard - Ziemann",
+    "status": "qualified",
+    "source": "partner",
+    "lastContact": "2025-03-31"
+  },
+  {
+    "id": "LEAD-9294",
+    "name": "Olivia Spinka",
+    "company": "Hartmann, Harvey and Tillman",
+    "status": "lost",
+    "source": "linkedin",
+    "lastContact": "2025-03-17"
+  },
+  {
+    "id": "LEAD-9824",
+    "name": "Mr. Cornelius Koss",
+    "company": "Kessler, Lueilwitz and Bauch",
+    "status": "qualified",
+    "source": "social_media",
+    "lastContact": "2025-03-13"
+  },
+  {
+    "id": "LEAD-4341",
+    "name": "Debra Hagenes",
+    "company": "Borer LLC",
+    "status": "contacted",
+    "source": "conference",
+    "lastContact": "2025-03-09"
+  },
+  {
+    "id": "LEAD-3335",
+    "name": "Shawn Gutmann",
+    "company": "Mitchell, Mayer and Hodkiewicz",
+    "status": "lost",
+    "source": "linkedin",
+    "lastContact": "2025-03-13"
+  },
+  {
+    "id": "LEAD-7620",
+    "name": "Sabrina Smith",
+    "company": "Jerde and Sons",
+    "status": "new",
+    "source": "linkedin",
+    "lastContact": "2025-03-16"
+  },
+  {
+    "id": "LEAD-7288",
+    "name": "Chad Hermann",
+    "company": "Baumbach, Goldner and Ankunding",
+    "status": "qualified",
+    "source": "partner",
+    "lastContact": "2025-03-19"
+  },
+  {
+    "id": "LEAD-8127",
+    "name": "Miss Blanche Stroman",
+    "company": "Cormier, Fay and Carroll",
+    "status": "lost",
+    "source": "social_media",
+    "lastContact": "2025-03-25"
+  },
+  {
+    "id": "LEAD-7801",
+    "name": "Jodi Shanahan",
+    "company": "Sporer - Hodkiewicz",
+    "status": "proposal",
+    "source": "website",
+    "lastContact": "2025-03-09"
+  },
+  {
+    "id": "LEAD-5389",
+    "name": "Tracy Goodwin",
+    "company": "Schmidt - McCullough",
+    "status": "closed",
+    "source": "trade_show",
+    "lastContact": "2025-03-07"
+  },
+  {
+    "id": "LEAD-3902",
+    "name": "Olga Anderson I",
+    "company": "O'Hara and Sons",
+    "status": "qualified",
+    "source": "partner",
+    "lastContact": "2025-03-08"
+  },
+  {
+    "id": "LEAD-4431",
+    "name": "Julio Harris",
+    "company": "Cormier - Treutel",
+    "status": "proposal",
+    "source": "cold_call",
+    "lastContact": "2025-03-09"
+  },
+  {
+    "id": "LEAD-9605",
+    "name": "Carroll Aufderhar",
+    "company": "Jones, Gusikowski and Romaguera",
+    "status": "proposal",
+    "source": "trade_show",
+    "lastContact": "2025-03-25"
+  },
+  {
+    "id": "LEAD-7080",
+    "name": "Leon Ritchie",
+    "company": "Kirlin, Sipes and Bashirian",
+    "status": "closed",
+    "source": "cold_call",
+    "lastContact": "2025-03-06"
+  },
+  {
+    "id": "LEAD-1439",
+    "name": "Mattie Abshire",
+    "company": "Lubowitz, Connelly and Leannon",
+    "status": "lost",
+    "source": "linkedin",
+    "lastContact": "2025-03-22"
+  },
+  {
+    "id": "LEAD-1872",
+    "name": "Kent West",
+    "company": "Wunsch - Emmerich",
+    "status": "lost",
+    "source": "social_media",
+    "lastContact": "2025-03-24"
+  },
+  {
+    "id": "LEAD-1901",
+    "name": "Eva Huel",
+    "company": "Gusikowski Inc",
+    "status": "closed",
+    "source": "partner",
+    "lastContact": "2025-03-07"
+  },
+  {
+    "id": "LEAD-4728",
+    "name": "June Buckridge",
+    "company": "D'Amore and Sons",
+    "status": "lost",
+    "source": "referral",
+    "lastContact": "2025-03-11"
+  },
+  {
+    "id": "LEAD-1070",
+    "name": "Edgar Leuschke",
+    "company": "Konopelski Group",
+    "status": "lost",
+    "source": "trade_show",
+    "lastContact": "2025-03-11"
+  },
+  {
+    "id": "LEAD-9781",
+    "name": "Geneva Stamm",
+    "company": "Lynch, Koelpin and Williamson",
+    "status": "proposal",
+    "source": "social_media",
+    "lastContact": "2025-03-23"
+  },
+  {
+    "id": "LEAD-8916",
+    "name": "Mrs. Jan Miller",
+    "company": "Olson Inc",
+    "status": "qualified",
+    "source": "partner",
+    "lastContact": "2025-03-22"
+  }
+]
