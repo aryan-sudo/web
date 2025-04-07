@@ -1,0 +1,90 @@
+[
+  {
+    "id": "PROP-001",
+    "title": "Website Redesign",
+    "client": "Acme Corporation",
+    "status": "draft",
+    "date": "2023-11-01",
+    "value": 15000,
+    "type": "proposal",
+    "dueDate": "2023-11-15",
+    "createdBy": "John Doe"
+  },
+  {
+    "id": "PROP-002",
+    "title": "Marketing Campaign",
+    "client": "Global Industries",
+    "status": "submitted",
+    "date": "2023-11-05",
+    "value": 8500,
+    "type": "proposal",
+    "dueDate": "2023-11-20",
+    "createdBy": "Jane Smith"
+  },
+  {
+    "id": "PROP-003",
+    "title": "Mobile App Development",
+    "client": "Tech Innovators",
+    "status": "accepted",
+    "date": "2023-10-28",
+    "value": 45000,
+    "type": "proposal",
+    "dueDate": "2023-11-10",
+    "createdBy": "Alex Johnson"
+  },
+  {
+    "id": "PROP-004",
+    "title": "Brand Identity Redesign",
+    "client": "Fresh Start LLC",
+    "status": "revising",
+    "date": "2023-11-07",
+    "value": 12000,
+    "type": "proposal",
+    "dueDate": "2023-11-21",
+    "createdBy": "Sarah Williams"
+  },
+  {
+    "id": "PROP-005",
+    "title": "Content Strategy",
+    "client": "Media Matters",
+    "status": "rejected",
+    "date": "2023-10-15",
+    "value": 5000,
+    "type": "proposal",
+    "dueDate": "2023-10-30",
+    "createdBy": "Michael Brown"
+  },
+  {
+    "id": "PROP-006",
+    "title": "SEO Optimization",
+    "client": "Online Retailers",
+    "status": "draft",
+    "date": "2023-11-08",
+    "value": 3500,
+    "type": "proposal",
+    "dueDate": "2023-11-22",
+    "createdBy": "Emily Davis"
+  },
+  {
+    "id": "PROP-007",
+    "title": "E-commerce Platform",
+    "client": "Fashion Forward",
+    "status": "submitted",
+    "date": "2023-11-03",
+    "value": 28000,
+    "type": "proposal",
+    "dueDate": "2023-11-17",
+    "createdBy": "David Wilson"
+  },
+  {
+    "id": "PROP-008",
+    "title": "Social Media Strategy",
+    "client": "Trendy Foods",
+    "status": "accepted",
+    "date": "2023-10-20",
+    "value": 7500,
+    "type": "proposal",
+    "dueDate": "2023-11-05",
+    "createdBy": "Rachel Miller"
+  }
+] 

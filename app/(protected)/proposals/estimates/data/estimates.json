@@ -1,0 +1,90 @@
+[
+  {
+    "id": "EST-001",
+    "title": "Office Renovation",
+    "client": "Business Solutions Inc",
+    "status": "draft",
+    "date": "2023-11-02",
+    "value": 85000,
+    "type": "estimate",
+    "dueDate": "2023-11-16",
+    "createdBy": "John Doe"
+  },
+  {
+    "id": "EST-002",
+    "title": "Annual IT Support",
+    "client": "Global Industries",
+    "status": "submitted",
+    "date": "2023-11-04",
+    "value": 12000,
+    "type": "estimate",
+    "dueDate": "2023-11-18",
+    "createdBy": "Jane Smith"
+  },
+  {
+    "id": "EST-003",
+    "title": "Product Photography",
+    "client": "Fashion Forward",
+    "status": "accepted",
+    "date": "2023-10-25",
+    "value": 3500,
+    "type": "estimate",
+    "dueDate": "2023-11-08",
+    "createdBy": "Alex Johnson"
+  },
+  {
+    "id": "EST-004",
+    "title": "Server Infrastructure",
+    "client": "Tech Innovators",
+    "status": "revising",
+    "date": "2023-11-06",
+    "value": 28500,
+    "type": "estimate",
+    "dueDate": "2023-11-20",
+    "createdBy": "Sarah Williams"
+  },
+  {
+    "id": "EST-005",
+    "title": "Print Marketing Materials",
+    "client": "Local Business Association",
+    "status": "rejected",
+    "date": "2023-10-18",
+    "value": 4200,
+    "type": "estimate",
+    "dueDate": "2023-11-01",
+    "createdBy": "Michael Brown"
+  },
+  {
+    "id": "EST-006",
+    "title": "Video Production",
+    "client": "Media Matters",
+    "status": "draft",
+    "date": "2023-11-07",
+    "value": 8900,
+    "type": "estimate",
+    "dueDate": "2023-11-21",
+    "createdBy": "Emily Davis"
+  },
+  {
+    "id": "EST-007",
+    "title": "E-commerce Platform Maintenance",
+    "client": "Online Retailers",
+    "status": "submitted",
+    "date": "2023-11-01",
+    "value": 1800,
+    "type": "estimate",
+    "dueDate": "2023-11-15",
+    "createdBy": "David Wilson"
+  },
+  {
+    "id": "EST-008",
+    "title": "Training Workshop",
+    "client": "Educational Systems",
+    "status": "accepted",
+    "date": "2023-10-22",
+    "value": 2500,
+    "type": "estimate",
+    "dueDate": "2023-11-05",
+    "createdBy": "Rachel Miller"
+  }
+] 
