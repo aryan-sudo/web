@@ -4,12 +4,11 @@ import { Metadata } from "next"
 import Image from "next/image"
 import { z } from "zod"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
 
 import { columns } from "./_components/columns"
 import { DataTable } from "./_components/data-table"
 import { proposalSchema } from "./data/schema"
+import { CreateProposalDialog } from "./_components/create-proposal-dialog"
 
 export const metadata: Metadata = {
   title: "Proposals & Estimates",
@@ -75,10 +74,7 @@ export default async function ProposalsEstimatesPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create New
-            </Button>
+            <CreateProposalDialog />
           </div>
         </div>
 
