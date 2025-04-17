@@ -1,34 +1,56 @@
 "use client"
 
 import * as React from "react"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, Upload, FileCheck } from "lucide-react"
+import { PlusCircle, Upload, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { createProposal } from "../actions"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { getTemplates, initiateProposalCreation, processAndEmbedDocuments } from "../actions"
 import { CreateProposalActionInput, UploadedFile } from "../actions"
 import { toast } from "sonner"
-import Tiptap from "@/components/common/editor"
+
+interface Template {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
 export function CreateProposalDialog() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [processingStep, setProcessingStep] = useState<'idle' | 'parsing' | 'embedding' | 'done' | 'error'>('idle')
   const [files, setFiles] = useState<File[]>([])
-  const [generatedProposal, setGeneratedProposal] = useState<string>('')
   const [open, setOpen] = useState(false)
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("")
 
-  // Reset state when dialog closes
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const result = await getTemplates();
+      if (result.success && result.data) {
+        setTemplates(result.data);
+      } else {
+        toast.error(result.error || "Failed to fetch templates");
+      }
+    };
+    if (open) {
+      fetchTemplates();
+    }
+  }, [open]);
+
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
     if (!newOpen) {
       setFiles([])
-      setGeneratedProposal('')
+      setSelectedTemplate("")
+      setIsSubmitting(false)
+      setProcessingStep('idle')
     }
   }
 
@@ -40,7 +62,6 @@ export function CreateProposalDialog() {
     onDrop,
     accept: {
       'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/plain': ['.txt']
     }
@@ -52,7 +73,6 @@ export function CreateProposalDialog() {
       reader.readAsDataURL(file)
       reader.onload = () => {
         const base64String = reader.result as string
-        // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
         const base64Content = base64String.split(',')[1]
         resolve(base64Content)
       }
@@ -62,13 +82,17 @@ export function CreateProposalDialog() {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!selectedTemplate) { toast.error("Please select a template."); return; }
+    if (files.length === 0) { toast.error("Please upload at least one document."); return; }
     setIsSubmitting(true)
-    setGeneratedProposal('')
+    setProcessingStep('parsing')
+
+    let proposalRequestId: string | undefined;
 
     try {
       const formData = new FormData(event.currentTarget)
-      
-      // Convert files to base64
+      toast.info("Parsing uploaded files...");
+
       const processedFiles: UploadedFile[] = await Promise.all(
         files.map(async (file) => ({
           name: file.name,
@@ -84,29 +108,56 @@ export function CreateProposalDialog() {
         type: formData.get('type') as "proposal" | "estimate",
         value: formData.get('value') ? Number(formData.get('value')) : undefined,
         dueDate: formData.get('dueDate') as string || undefined,
+        templateId: selectedTemplate,
         files: processedFiles
       }
 
-      const result = await createProposal(input)
+      const initiationResult = await initiateProposalCreation(input)
 
-      if (result.success) {
-        toast.success("Proposal created successfully")
-        if (result.generatedProposal) {
-          setGeneratedProposal(result.generatedProposal)
-        }
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to create proposal")
+      if (!initiationResult.success || !initiationResult.proposalRequestId || !initiationResult.extractedText) {
+        setProcessingStep('error');
+        toast.error(initiationResult.error || "Failed to parse documents or extract text.");
+        setIsSubmitting(false);
+        return;
       }
+
+      proposalRequestId = initiationResult.proposalRequestId;
+      const documentsText = initiationResult.extractedText;
+
+      console.log("Initiation successful, Request ID:", proposalRequestId)
+      toast.success("Files parsed successfully. Starting embedding...");
+      setProcessingStep('embedding');
+
+      const embeddingResult = await processAndEmbedDocuments({
+        proposalRequestId: proposalRequestId,
+        documentsText: documentsText
+      });
+
+      if (!embeddingResult.success) {
+        setProcessingStep('error');
+        toast.error(embeddingResult.error || "Failed to embed documents.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setProcessingStep('done');
+      toast.success("Documents processed and ready for generation!");
+      router.refresh()
+      handleOpenChange(false)
+
     } catch (error: Error | unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An error occurred while creating the proposal")
-      }
-    } finally {
-      setIsSubmitting(false)
+      setProcessingStep('error');
+      const message = error instanceof Error ? error.message : "An unexpected error occurred."
+      toast.error(`Error: ${message}`)
+      setIsSubmitting(false);
     }
+  }
+
+  const getSubmitButtonText = () => {
+    if (processingStep === 'parsing') return "Parsing Files..."
+    if (processingStep === 'embedding') return "Embedding Documents..."
+    if (isSubmitting) return "Processing..."
+    return "Initiate Creation"
   }
 
   return (
@@ -117,131 +168,106 @@ export function CreateProposalDialog() {
           Create New
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[850px]">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-2xl font-bold tracking-tight">Create New Document</DialogTitle>
+          <DialogTitle className="text-2xl font-bold tracking-tight">Initiate Proposal Creation</DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
-            Fill in the details and upload any RFP documents to generate a proposal.
+            Fill details, select a template, and upload documents to start the RAG process.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <form onSubmit={onSubmit} className="space-y-6">
-            <div className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="template">Template</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate} required name="templateId">
+                <SelectTrigger id="template">
+                  <SelectValue placeholder="Select a template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.length === 0 && <SelectItem value="loading" disabled>Loading templates...</SelectItem>}
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name} {template.description ? `- ${template.description}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" name="title" placeholder="Enter document title" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client">Client</Label>
+              <Input id="client" name="client" placeholder="Enter client name" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select name="type" defaultValue="proposal" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="proposal">Proposal</SelectItem>
+                  <SelectItem value="estimate">Estimate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  placeholder="Enter document title"
-                  required
-                />
+                <Label htmlFor="value">Value</Label>
+                <Input id="value" name="value" type="number" placeholder="Enter value" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client">Client</Label>
-                <Input
-                  id="client"
-                  name="client"
-                  placeholder="Enter client name"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <RadioGroup defaultValue="proposal" name="type" className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="proposal" id="proposal" />
-                    <Label htmlFor="proposal" className="font-normal">Proposal</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="estimate" id="estimate" />
-                    <Label htmlFor="estimate" className="font-normal">Estimate</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="value">Value</Label>
-                  <Input
-                    id="value"
-                    name="value"
-                    type="number"
-                    placeholder="Enter value"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    id="dueDate"
-                    name="dueDate"
-                    type="date"
-                  />
-                </div>
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input id="dueDate" name="dueDate" type="date" />
               </div>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>RFP/Source Documents</Label>
             <div
               {...getRootProps()}
               className={cn(
-                "relative border-2 border-dashed rounded-xl p-10 transition-colors",
-                "hover:bg-muted/50",
+                "relative border-2 border-dashed rounded-lg p-8 transition-colors",
+                "hover:bg-muted/50 cursor-pointer",
                 isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
               )}
             >
               <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center space-y-4 text-center">
-                <div className="rounded-full bg-muted p-3">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                <div className="rounded-full border border-dashed bg-muted p-2">
+                  <Upload className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-lg font-medium leading-6">
-                    {isDragActive ? "Drop the files here" : "Drag & drop RFP files here"}
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">
+                    {isDragActive ? "Drop the files here" : "Drag & drop files here"}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    or click to select from your computer
+                  <p className="text-xs text-muted-foreground">
+                    or click to select (PDF, DOCX, TXT)
                   </p>
                 </div>
-                <p className="text-xs text-muted-foreground/75">
-                  Supports PDF, DOC, DOCX, and TXT files
-                </p>
               </div>
-              {files.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium">Selected files:</p>
-                  <ul className="text-sm text-muted-foreground">
-                    {files.map((file) => (
-                      <li key={file.name} className="flex items-center space-x-2">
-                        <FileCheck className="h-4 w-4" />
-                        <span>{file.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
-            <div className="flex justify-end">
-              <Button type="submit" size="lg" className="px-8" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Document"}
-              </Button>
-            </div>
-          </form>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-semibold">Generated Proposal</h3>
-              {generatedProposal ? (
-                <div className="rounded-lg border bg-card text-card-foreground p-4 h-[600px] overflow-y-auto">
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <Tiptap content={generatedProposal} />
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-lg border bg-muted/50 p-8 text-center text-sm text-muted-foreground">
-                  <Upload className="mx-auto h-8 w-8 mb-3 text-muted-foreground/50" />
-                  <p>Upload RFP documents and fill in the form to generate a proposal automatically.</p>
-                </div>
-              )}
-            </div>
+            {files.length > 0 && (
+              <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                <p className="font-medium">Selected files:</p>
+                <ul className="list-disc pl-5 space-y-0.5">
+                  {files.map((file) => (
+                    <li key={file.name} className="truncate">{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        </div>
+          <div className="flex justify-end pt-2">
+            <Button type="submit" size="lg" disabled={isSubmitting || files.length === 0 || !selectedTemplate}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {getSubmitButtonText()}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )
