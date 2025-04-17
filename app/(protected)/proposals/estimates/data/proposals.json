@@ -86,5 +86,60 @@
     "type": "proposal",
     "dueDate": "2023-11-05",
     "createdBy": "Rachel Miller"
+  },
+  {
+    "id": "PROP-7492",
+    "title": "tezt",
+    "client": "test",
+    "status": "draft",
+    "date": "2025-04-16",
+    "value": 1,
+    "type": "proposal",
+    "dueDate": "2025-04-01",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-9984",
+    "title": "test",
+    "client": "test",
+    "status": "draft",
+    "date": "2025-04-16",
+    "value": 1,
+    "type": "proposal",
+    "dueDate": "2025-04-15",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-9460",
+    "title": "test",
+    "client": "test",
+    "status": "draft",
+    "date": "2025-04-16",
+    "value": 1,
+    "type": "proposal",
+    "dueDate": "2025-04-15",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-1839",
+    "title": "test",
+    "client": "teszt",
+    "status": "draft",
+    "date": "2025-04-16",
+    "value": 1,
+    "type": "proposal",
+    "dueDate": "2025-04-15",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-1850",
+    "title": "test",
+    "client": "teszt",
+    "status": "draft",
+    "date": "2025-04-16",
+    "value": 1,
+    "type": "proposal",
+    "dueDate": "2025-04-15",
+    "createdBy": "Current User"
   }
-] 
+]
