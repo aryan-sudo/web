@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getTemplates, initiateProposalCreation, processAndEmbedDocuments } from "../actions"
+import { getTemplates, initiateProposalCreation, processAndEmbedDocuments, generateProposalSections } from "../actions"
 import { CreateProposalActionInput, UploadedFile } from "../actions"
 import { toast } from "sonner"
+import Tiptap from "@/components/common/editor"
 
 interface Template {
   id: string;
@@ -24,11 +25,12 @@ interface Template {
 export function CreateProposalDialog() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [processingStep, setProcessingStep] = useState<'idle' | 'parsing' | 'embedding' | 'done' | 'error'>('idle')
+  const [processingStep, setProcessingStep] = useState<'idle' | 'parsing' | 'embedding' | 'generating' | 'displaying' | 'error'>('idle')
   const [files, setFiles] = useState<File[]>([])
   const [open, setOpen] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
+  const [generatedContent, setGeneratedContent] = useState<string>("")
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -51,6 +53,7 @@ export function CreateProposalDialog() {
       setSelectedTemplate("")
       setIsSubmitting(false)
       setProcessingStep('idle')
+      setGeneratedContent("")
     }
   }
 
@@ -81,13 +84,17 @@ export function CreateProposalDialog() {
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
+    console.log("onSubmit triggered!");
+
     if (!selectedTemplate) { toast.error("Please select a template."); return; }
     if (files.length === 0) { toast.error("Please upload at least one document."); return; }
     setIsSubmitting(true)
+    setGeneratedContent("")
     setProcessingStep('parsing')
 
     let proposalRequestId: string | undefined;
+    let inputData: CreateProposalActionInput | undefined;
 
     try {
       const formData = new FormData(event.currentTarget)
@@ -102,7 +109,7 @@ export function CreateProposalDialog() {
         }))
       )
 
-      const input: CreateProposalActionInput = {
+      inputData = {
         title: formData.get('title') as string,
         client: formData.get('client') as string,
         type: formData.get('type') as "proposal" | "estimate",
@@ -112,7 +119,7 @@ export function CreateProposalDialog() {
         files: processedFiles
       }
 
-      const initiationResult = await initiateProposalCreation(input)
+      const initiationResult = await initiateProposalCreation(inputData)
 
       if (!initiationResult.success || !initiationResult.proposalRequestId || !initiationResult.extractedText) {
         setProcessingStep('error');
@@ -140,10 +147,28 @@ export function CreateProposalDialog() {
         return;
       }
 
-      setProcessingStep('done');
-      toast.success("Documents processed and ready for generation!");
+      toast.success("Embedding complete. Starting generation...");
+      setProcessingStep('generating');
+
+      const generationResult = await generateProposalSections({ 
+        proposalRequestId: proposalRequestId, 
+        templateId: selectedTemplate,
+        clientName: inputData.client,
+        projectTitle: inputData.title,
+      });
+
+      if (!generationResult.success || !generationResult.generatedContent) {
+        setProcessingStep('error');
+        toast.error(generationResult.error || "Failed to generate proposal content.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setGeneratedContent(generationResult.generatedContent);
+      setProcessingStep('displaying');
+      toast.success("Proposal generated successfully!");
+      setIsSubmitting(false);
       router.refresh()
-      handleOpenChange(false)
 
     } catch (error: Error | unknown) {
       setProcessingStep('error');
@@ -156,118 +181,152 @@ export function CreateProposalDialog() {
   const getSubmitButtonText = () => {
     if (processingStep === 'parsing') return "Parsing Files..."
     if (processingStep === 'embedding') return "Embedding Documents..."
+    if (processingStep === 'generating') return "Generating Content..."
     if (isSubmitting) return "Processing..."
-    return "Initiate Creation"
+    return "Initiate & Generate"
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-9">
+        <Button size="sm" className="h-9" disabled={processingStep !== 'idle' && processingStep !== 'displaying' && processingStep !== 'error'}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Create New
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[650px]">
-        <DialogHeader className="space-y-1">
-          <DialogTitle className="text-2xl font-bold tracking-tight">Initiate Proposal Creation</DialogTitle>
+      <DialogContent className="sm:max-w-[800px] min-h-[70vh] flex flex-col">
+        <DialogHeader className="space-y-1 flex-shrink-0">
+          <DialogTitle className="text-2xl font-bold tracking-tight">
+            {processingStep === 'displaying' ? "Generated Proposal/Estimate" : "Initiate Proposal Creation"}
+          </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
-            Fill details, select a template, and upload documents to start the RAG process.
+            {processingStep === 'displaying' 
+              ? "Review the generated content below. You can copy or edit it further outside this dialog."
+              : "Fill details, select template, and upload documents to start generation."
+            }
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="template">Template</Label>
-              <Select value={selectedTemplate} onValueChange={setSelectedTemplate} required name="templateId">
-                <SelectTrigger id="template">
-                  <SelectValue placeholder="Select a template..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.length === 0 && <SelectItem value="loading" disabled>Loading templates...</SelectItem>}
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name} {template.description ? `- ${template.description}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" name="title" placeholder="Enter document title" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
-              <Input id="client" name="client" placeholder="Enter client name" required />
-            </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select name="type" defaultValue="proposal" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="proposal">Proposal</SelectItem>
-                  <SelectItem value="estimate">Estimate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="value">Value</Label>
-                <Input id="value" name="value" type="number" placeholder="Enter value" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input id="dueDate" name="dueDate" type="date" />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>RFP/Source Documents</Label>
-            <div
-              {...getRootProps()}
-              className={cn(
-                "relative border-2 border-dashed rounded-lg p-8 transition-colors",
-                "hover:bg-muted/50 cursor-pointer",
-                isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
-              )}
-            >
-              <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                <div className="rounded-full border border-dashed bg-muted p-2">
-                  <Upload className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">
-                    {isDragActive ? "Drop the files here" : "Drag & drop files here"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    or click to select (PDF, DOCX, TXT)
-                  </p>
-                </div>
-              </div>
-            </div>
-            {files.length > 0 && (
-              <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                <p className="font-medium">Selected files:</p>
-                <ul className="list-disc pl-5 space-y-0.5">
-                  {files.map((file) => (
-                    <li key={file.name} className="truncate">{file.name}</li>
-                  ))}
-                </ul>
-              </div>
+        {processingStep === 'displaying' ? (
+          <div className="flex-grow overflow-y-auto border rounded-md p-4 bg-background">
+            {generatedContent ? (
+                <Tiptap content={generatedContent} />
+            ) : (
+              <p className="text-center text-muted-foreground">No content was generated.</p>
             )}
           </div>
-          <div className="flex justify-end pt-2">
-            <Button type="submit" size="lg" disabled={isSubmitting || files.length === 0 || !selectedTemplate}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {getSubmitButtonText()}
+        ) : (
+          <form onSubmit={onSubmit} className="space-y-5 overflow-y-auto flex-grow pr-2">
+            <div className="space-y-2">
+               <Label htmlFor="template">Template</Label>
+               <Select value={selectedTemplate} onValueChange={setSelectedTemplate} required name="templateId" disabled={isSubmitting}>
+                 <SelectTrigger id="template">
+                   <SelectValue placeholder="Select a template..." />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {templates.length === 0 && <SelectItem value="loading" disabled>Loading templates...</SelectItem>}
+                   {templates.map((template) => (
+                     <SelectItem key={template.id} value={template.id}>
+                       {template.name} {template.description ? `- ${template.description}` : ''}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+ 
+             <div className="space-y-2">
+               <Label htmlFor="title">Title</Label>
+               <Input id="title" name="title" placeholder="Enter document title" required disabled={isSubmitting}/>
+             </div>
+             <div className="space-y-2">
+               <Label htmlFor="client">Client</Label>
+               <Input id="client" name="client" placeholder="Enter client name" required disabled={isSubmitting}/>
+             </div>
+             <div className="space-y-2">
+                <Label>Type</Label>
+                <Select name="type" defaultValue="proposal" required disabled={isSubmitting}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="proposal">Proposal</SelectItem>
+                    <SelectItem value="estimate">Estimate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+             <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label htmlFor="value">Value</Label>
+                 <Input id="value" name="value" type="number" placeholder="Enter value" disabled={isSubmitting}/>
+               </div>
+               <div className="space-y-2">
+                 <Label htmlFor="dueDate">Due Date</Label>
+                 <Input id="dueDate" name="dueDate" type="date" disabled={isSubmitting}/>
+               </div>
+             </div>
+ 
+            <div className="space-y-2">
+               <Label>RFP/Source Documents</Label>
+               <div
+                 {...getRootProps()}
+                 className={cn(
+                   "relative border-2 border-dashed rounded-lg p-8 transition-colors",
+                   isSubmitting ? "cursor-not-allowed bg-muted/30" : "hover:bg-muted/50 cursor-pointer",
+                   isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
+                 )}
+               >
+                 <input {...getInputProps()} disabled={isSubmitting}/>
+                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                  <div className="rounded-full border border-dashed bg-muted p-2">
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">
+                      {isDragActive ? "Drop the files here" : "Drag & drop files here"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      or click to select (PDF, DOCX, TXT)
+                    </p>
+                  </div>
+                </div>
+               </div>
+               {files.length > 0 && (
+                 <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                   <p className="font-medium">Selected files:</p>
+                   <ul className="list-disc pl-5 space-y-0.5">
+                     {files.map((file) => (
+                       <li key={file.name} className="truncate">{file.name}</li>
+                     ))}
+                   </ul>
+                 </div>
+               )}
+             </div>
+
+            <div className="flex justify-end pt-2 border-t mt-4">
+              <Button 
+                type="submit" 
+                size="lg" 
+                disabled={isSubmitting || files.length === 0 || !selectedTemplate}
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+                {getSubmitButtonText()}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        <div className="flex justify-end pt-4 flex-shrink-0 border-t mt-4">
+          {processingStep === 'displaying' && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="lg" 
+              onClick={() => handleOpenChange(false)}
+            >
+              Close
             </Button>
-          </div>
-        </form>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

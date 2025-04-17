@@ -16,6 +16,9 @@ import mammoth from 'mammoth'
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 // Import LangChain Loaders and Node.js modules
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -385,5 +388,149 @@ export async function getTemplates() {
   } catch (error) {
     console.error('Error in getTemplates action:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch templates' };
+  }
+}
+
+// --- Action: Generate Proposal Sections --- 
+
+interface GenerateInput {
+  proposalRequestId: string;
+  templateId: string;
+  clientName?: string;
+  projectTitle?: string;
+}
+
+// Basic prompt template for generating a section based on context
+const sectionPromptTemplate = new PromptTemplate({
+  template: `You are an expert proposal writer assisting a user.
+  You are working on a proposal titled "{projectTitle}" for the client "{clientName}".
+  Based *only* on the following provided context from relevant documents, generate the content for the requested section.
+  Do not add any information not present in the context.
+  If the context is empty or insufficient, state that you cannot generate the section based on the provided documents.
+  Keep the output concise and relevant to the section topic.
+
+  Context:
+  {context}
+
+  Section to Generate:
+  {section_query}
+
+  Generated Content:`,
+  inputVariables: ["context", "section_query", "projectTitle", "clientName"],
+});
+
+// Simple mapping from placeholder name to a query for vector search & LLM prompt
+const sectionQueryMapping: Record<string, string> = {
+  "project_overview": "Provide a concise overview of the project.",
+  "solution_details": "Describe the proposed solution in detail.",
+  "timeline": "Outline the project timeline and key milestones.",
+  "investment": "Detail the required investment or budget.",
+  "executive_summary": "Write an executive summary for the project.",
+  "scope_of_work": "Define the scope of work.",
+  "cost_discovery": "Estimate the cost for discovery and planning.",
+  "cost_design": "Estimate the cost for design and UX.",
+  "cost_development": "Estimate the cost for development.",
+  "cost_qa": "Estimate the cost for testing and QA.",
+  "cost_deployment": "Estimate the cost for deployment and setup.",
+  "total_cost": "Summarize the total estimated cost.",
+  "assumptions": "List any assumptions made for this estimate/proposal.",
+  "next_steps": "Outline the next steps after proposal acceptance.",
+  // Add mappings for any other placeholders you might use
+};
+
+export async function generateProposalSections({ proposalRequestId, templateId, clientName, projectTitle }: GenerateInput) {
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) {
+    return { success: false, error: 'Server configuration error: Missing Google API Key' };
+  }
+
+  try {
+    // 1. Fetch Template Content
+    const { data: templateData, error: templateError } = await supabase
+      .from('templates')
+      .select('content')
+      .eq('id', templateId)
+      .single();
+
+    if (templateError || !templateData) {
+      console.error('Error fetching template:', templateError);
+      return { success: false, error: 'Failed to fetch template content.' };
+    }
+    let templateContent = templateData.content;
+
+    // 2. Initialize Embeddings and LLM
+    const embeddings = new GoogleGenerativeAIEmbeddings({ apiKey, modelName: "text-embedding-004" });
+    const llm = new ChatGoogleGenerativeAI({ apiKey, model: "gemini-1.5-flash-latest" });
+    const outputParser = new StringOutputParser();
+    const chain = sectionPromptTemplate.pipe(llm).pipe(outputParser);
+
+    // 3. Find placeholders in the template
+    const placeholderRegex = /{{\s*([\w_]+)\s*}}/g;
+    const placeholders = [...templateContent.matchAll(placeholderRegex)];
+
+    if (placeholders.length === 0) {
+       console.log("No placeholders found in the template.");
+       return { success: true, generatedContent: templateContent }; // Return original template if no placeholders
+    }
+    
+    console.log(`Found ${placeholders.length} placeholders to generate.`);
+
+    // 4. Process each placeholder
+    for (const match of placeholders) {
+      const placeholder = match[0]; // e.g., {{project_overview}}
+      const sectionKey = match[1]; // e.g., project_overview
+      console.log(`Processing placeholder: ${placeholder}`);
+
+      const sectionQuery = sectionQueryMapping[sectionKey] || `Generate content for the section: ${sectionKey}`;
+      
+      try {
+          // 4a. Generate query embedding
+          const queryEmbedding = await embeddings.embedQuery(sectionQuery);
+
+          // 4b. Retrieve context from Supabase
+          const { data: chunks, error: rpcError } = await supabase.rpc('match_document_chunks', {
+            query_embedding: queryEmbedding,
+            match_threshold: 0.5,
+            match_count: 5,
+            p_request_id: proposalRequestId
+          });
+
+          if (rpcError) {
+            console.error(`Error searching documents for section ${sectionKey}:`, rpcError);
+            throw new Error(`Failed to retrieve context for section: ${sectionKey}`);
+          }
+
+          const context = chunks && chunks.length > 0 
+              ? chunks.map((chunk: { content: string }) => chunk.content).join("\n\n") 
+              : "No relevant context found in documents.";
+          
+          console.log(`Retrieved ${chunks?.length || 0} chunks for section ${sectionKey}. Context length: ${context.length}`);
+
+          // 4c. Call LLM to generate section content
+          const generatedSection = await chain.invoke({ 
+              context: context,
+              section_query: sectionQuery,
+              projectTitle: projectTitle || "",
+              clientName: clientName || ""
+          });
+          
+          console.log(`Generated content for ${sectionKey}`);
+
+          // 4d. Replace placeholder in template
+          templateContent = templateContent.replace(placeholder, generatedSection.trim());
+
+      } catch (sectionError) {
+          console.error(`Error processing section ${sectionKey}:`, sectionError);
+          // Replace placeholder with an error message or leave it?
+          templateContent = templateContent.replace(placeholder, `[Error generating content for ${sectionKey}]`);
+      }
+    }
+
+    // 5. Return assembled content
+    return { success: true, generatedContent: templateContent };
+
+  } catch (error) {
+    console.error('Error generating proposal sections:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to generate proposal content' };
   }
 }
