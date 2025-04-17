@@ -9,8 +9,8 @@ export const proposalSchema = z.object({
   date: z.string(),
   value: z.number().optional(),
   type: z.enum(["proposal", "estimate"]),
-  dueDate: z.string().optional(),
-  createdBy: z.string(),
+  duedate: z.string().optional(),
+  createdby: z.string(),
 })
 
 export type Proposal = z.infer<typeof proposalSchema>

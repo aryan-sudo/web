@@ -136,14 +136,22 @@ export const columns: ColumnDef<Proposal>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created" />
     ),
-    cell: ({ row }) => <div>{row.getValue("date")}</div>,
+    cell: ({ row }) => {
+      const dateString = row.getValue("date") as string;
+      const formattedDate = dateString ? dateString.split('T')[0] : 'N/A';
+      return <div>{formattedDate}</div>;
+    },
   },
   {
-    accessorKey: "dueDate",
+    accessorKey: "duedate",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Due Date" />
     ),
-    cell: ({ row }) => <div>{row.getValue("dueDate") || "N/A"}</div>,
+    cell: ({ row }) => {
+      const dateString = row.getValue("duedate") as string | undefined;
+      const formattedDate = dateString ? dateString.split('T')[0] : 'N/A';
+      return <div>{formattedDate}</div>;
+    },
   },
   {
     id: "actions",

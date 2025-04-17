@@ -141,5 +141,71 @@
     "type": "proposal",
     "dueDate": "2025-04-15",
     "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-6520",
+    "title": "Test",
+    "client": "Test",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 2,
+    "type": "proposal",
+    "dueDate": "2025-04-22",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-9385",
+    "title": "Proposal for gucci",
+    "client": "Gucci",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 2,
+    "type": "proposal",
+    "dueDate": "2025-04-08",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-4361",
+    "title": "Proposal for Gucci",
+    "client": "Gucci",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 2,
+    "type": "proposal",
+    "dueDate": "2025-04-14",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-2562",
+    "title": "Proposal for gucci",
+    "client": "Gucci",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 23,
+    "type": "proposal",
+    "dueDate": "2025-04-24",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-9137",
+    "title": "Proposal for gucci",
+    "client": "Gucci",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 12,
+    "type": "proposal",
+    "dueDate": "2025-04-08",
+    "createdBy": "Current User"
+  },
+  {
+    "id": "PROP-6691",
+    "title": "Proposal for gucci",
+    "client": "gucii",
+    "status": "draft",
+    "date": "2025-04-17",
+    "value": 12,
+    "type": "proposal",
+    "dueDate": "2025-04-15",
+    "createdBy": "Current User"
   }
 ]

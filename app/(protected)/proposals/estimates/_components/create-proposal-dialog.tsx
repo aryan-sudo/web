@@ -14,12 +14,23 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { createProposal } from "../actions"
 import { CreateProposalActionInput, UploadedFile } from "../actions"
 import { toast } from "sonner"
+import Tiptap from "@/components/common/editor"
 
 export function CreateProposalDialog() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [generatedProposal, setGeneratedProposal] = useState<string>('')
+  const [open, setOpen] = useState(false)
+
+  // Reset state when dialog closes
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen) {
+      setFiles([])
+      setGeneratedProposal('')
+    }
+  }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(acceptedFiles)
@@ -34,8 +45,6 @@ export function CreateProposalDialog() {
       'text/plain': ['.txt']
     }
   })
-
-  const [open, setOpen] = useState(false)
 
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -101,7 +110,7 @@ export function CreateProposalDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm" className="h-9">
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -221,7 +230,7 @@ export function CreateProposalDialog() {
               {generatedProposal ? (
                 <div className="rounded-lg border bg-card text-card-foreground p-4 h-[600px] overflow-y-auto">
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    {generatedProposal}
+                    <Tiptap content={generatedProposal} />
                   </div>
                 </div>
               ) : (

@@ -31,40 +31,73 @@ export type CreateProposalActionInput = z.infer<typeof createProposalActionSchem
 
 const PROPOSAL_GENERATION_PROMPT = `You are an expert business proposal writer. Your task is to analyze the provided RFP (Request for Proposal) or related documents and generate a professional, comprehensive proposal response.
 
-Please structure your response in markdown format with the following sections:
+Generate the content in a clean, readable format that works with rich text editors. Do not use complex HTML - stick to basic formatting. Generate real, contextual content based on the provided information. If specific details are missing, make reasonable assumptions based on industry standards.
 
 # Executive Summary
-[A compelling overview of our understanding of the client's needs and our proposed solution]
+
+Write a compelling overview of our understanding of the client's needs and proposed solution. This should be 2-3 paragraphs of actual content, not placeholder text.
 
 # Understanding of Requirements
-[Detailed analysis of the client's needs and objectives based on the RFP]
+
+Provide a detailed analysis of the client's needs and objectives based on the RFP. If the RFP is not detailed, focus on standard industry requirements and best practices for similar projects.
 
 # Proposed Solution
-[Comprehensive description of our proposed approach, methodology, and deliverables]
+
+Describe our specific approach, methodology, and deliverables. Include concrete examples and specific technologies or methods we'll use.
 
 # Timeline & Milestones
-[Proposed project schedule with key milestones and deliverables]
+
+Our proposed timeline includes:
+• Discovery & Planning Phase: 2-3 weeks
+• Development & Implementation: 8-10 weeks
+• Testing & Quality Assurance: 2-3 weeks
+• Deployment & Training: 2 weeks
 
 # Team & Resources
-[Overview of the team structure and key personnel who will work on this project]
+
+Our dedicated team includes:
+• Project Manager with 10+ years experience
+• Senior Technical Architects
+• Industry Specialists
+• Quality Assurance Team
 
 # Budget & Pricing
-[Detailed cost breakdown and payment terms]
+
+Investment breakdown:
+• Professional Services: 60%
+• Technology & Infrastructure: 25%
+• Training & Support: 15%
+
+Total Investment: {projectValue}
 
 # Why Choose Us
-[Our competitive advantages and relevant experience]
+
+Our key differentiators include:
+• Proven track record in similar projects
+• Industry-leading expertise
+• Innovative solutions
+• Dedicated support team
 
 # Next Steps
-[Clear call to action and immediate next steps]
 
-Guidelines:
-- Be specific and data-driven where possible
+Upon acceptance of this proposal, we will:
+• Schedule a kick-off meeting
+• Finalize project timeline
+• Begin resource allocation
+• Initiate discovery phase
+
+Guidelines for content generation:
+- Generate actual content, not placeholder text
+- Be specific and data-driven
 - Focus on value proposition and ROI
 - Use clear, professional language
-- Include relevant examples and case studies if applicable
-- Address all key requirements from the RFP
+- Include relevant examples
+- Address key requirements from the RFP
 - Highlight unique differentiators
-- Be concise but comprehensive
+- Keep content concise but comprehensive
+- Use simple text formatting (no complex HTML)
+- Use bullet points for lists
+- Keep paragraphs clear and well-structured
 
 Context about the client and project:
 Client Name: {clientName}
@@ -72,7 +105,7 @@ Project Title: {projectTitle}
 Project Value: {projectValue}
 Due Date: {dueDate}
 
-Please analyze the provided documents and generate a proposal that addresses the client's specific needs while following these guidelines.`
+Analyze the provided documents and generate a proposal that addresses the client's specific needs. Replace all placeholder content with actual, contextual content based on the provided information and industry best practices.`
 
 export async function createProposal(input: CreateProposalActionInput) {
   try {

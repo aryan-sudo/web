@@ -1,9 +1,8 @@
-import { promises as fs } from "fs"
-import path from "path"
 import { Metadata } from "next"
 import Image from "next/image"
 import { z } from "zod"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { supabase } from "@/lib/supabaseClient"
 
 import { columns } from "./_components/columns"
 import { DataTable } from "./_components/data-table"
@@ -17,28 +16,44 @@ export const metadata: Metadata = {
 
 // Simulate a database read for proposals and estimates
 async function getProposals() {
+  const { data, error } = await supabase
+    .from('proposals') // Assuming table name is 'proposals'
+    .select('*')
+
+  if (error) {
+    console.error("Error fetching proposals:", error)
+    return []
+  }
+
+  console.log("Raw proposals data:", data);
+
   try {
-    const data = await fs.readFile(
-      path.join(process.cwd(), "app/(protected)/proposals/estimates/data/proposals.json")
-    )
-    const proposals = JSON.parse(data.toString())
-    return z.array(proposalSchema).parse(proposals)
-  } catch (error) {
-    console.error("Error loading proposals:", error)
+    // Validate data against the schema
+    return z.array(proposalSchema).parse(data)
+  } catch (validationError) {
+    console.error("Error validating proposals data:", validationError)
     return []
   }
 }
 
 // We'll use the same function for estimates since the schema is likely similar
 async function getEstimates() {
+  const { data, error } = await supabase
+    .from('estimates') // Assuming table name is 'estimates'
+    .select('*')
+
+  if (error) {
+    console.error("Error fetching estimates:", error)
+    return []
+  }
+
+  console.log("Raw estimates data:", data);
+
   try {
-    const data = await fs.readFile(
-      path.join(process.cwd(), "app/(protected)/proposals/estimates/data/estimates.json")
-    )
-    const estimates = JSON.parse(data.toString())
-    return z.array(proposalSchema).parse(estimates)
-  } catch (error) {
-    console.error("Error loading estimates:", error)
+    // Validate data against the schema
+    return z.array(proposalSchema).parse(data)
+  } catch (validationError) {
+    console.error("Error validating estimates data:", validationError)
     return []
   }
 }
