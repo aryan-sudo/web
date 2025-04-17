@@ -25,8 +25,6 @@ async function getProposals() {
     return []
   }
 
-  console.log("Raw proposals data:", data);
-
   try {
     // Validate data against the schema
     return z.array(proposalSchema).parse(data)
@@ -46,8 +44,6 @@ async function getEstimates() {
     console.error("Error fetching estimates:", error)
     return []
   }
-
-  console.log("Raw estimates data:", data);
 
   try {
     // Validate data against the schema

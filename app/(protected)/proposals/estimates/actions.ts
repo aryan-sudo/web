@@ -1,11 +1,12 @@
 'use server'
 
-import { promises as fs } from 'fs'
-import path from 'path'
+// import { promises as fs } from 'fs'
+// import path from 'path'
 import { z } from 'zod'
-import { proposalSchema } from './data/schema'
+// import { proposalSchema } from './data/schema'
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
+import { supabase } from '@/lib/supabaseClient'
 
 // Schema for the uploaded files
 const uploadedFileSchema = z.object({
@@ -155,19 +156,7 @@ export async function createProposal(input: CreateProposalActionInput) {
         })
 
         generatedProposal = result.text
-        console.log('Generated Proposal:', generatedProposal)
-
-        // Save the generated proposal to a markdown file
-        const proposalFileName = `${proposalId}-proposal.md`
-        const proposalFilePath = path.join(
-          process.cwd(),
-          'app/(protected)/proposals/estimates/data/generated',
-          proposalFileName
-        )
-
-        // Ensure the directory exists
-        await fs.mkdir(path.dirname(proposalFilePath), { recursive: true })
-        await fs.writeFile(proposalFilePath, generatedProposal)
+        console.log('Generated Proposal (not saved to file):', generatedProposal)
 
       } catch (error) {
         console.error('Error generating proposal:', error)
@@ -175,41 +164,43 @@ export async function createProposal(input: CreateProposalActionInput) {
       }
     }
 
-    // Create the new proposal object
-    const newProposal = proposalSchema.parse({
+    // Prepare the data for Supabase insertion (using lowercase keys for DB)
+    const dataToInsert = {
       id: proposalId,
       title: validatedInput.title,
       client: validatedInput.client,
       status: "draft",
-      date: new Date().toISOString().split('T')[0],
       value: validatedInput.value,
       type: validatedInput.type,
-      dueDate: validatedInput.dueDate,
-      createdBy: "Current User", // TODO: Replace with actual user info when auth is implemented
-    })
+      duedate: validatedInput.dueDate,
+      createdby: "Current User",
+    }
 
-    // Read the existing proposals/estimates file
-    const filePath = path.join(
-      process.cwd(),
-      'app/(protected)/proposals/estimates/data',
-      `${validatedInput.type}s.json`
-    )
-    const fileContent = await fs.readFile(filePath, 'utf-8')
-    const existingData = JSON.parse(fileContent)
+    // Determine the target table
+    const targetTable = validatedInput.type === 'proposal' ? 'proposals' : 'estimates'
 
-    // Add the new proposal/estimate
-    const updatedData = [...existingData, newProposal]
+    // Insert into Supabase
+    const { data: insertedData, error: insertError } = await supabase
+      .from(targetTable)
+      .insert([dataToInsert])
+      .select()
+      .single()
 
-    // Write back to the file
-    await fs.writeFile(filePath, JSON.stringify(updatedData, null, 2))
+    if (insertError) {
+      console.error(`Error inserting into ${targetTable}:`, insertError)
+      throw new Error(`Failed to save ${validatedInput.type} to database.`)
+    }
 
-    return { 
-      success: true, 
-      data: newProposal,
+    return {
+      success: true,
+      data: insertedData,
       generatedProposal: generatedProposal || undefined
     }
   } catch (error) {
     console.error('Error creating proposal:', error)
-    return { success: false, error: 'Failed to create proposal' }
+    if (error instanceof z.ZodError) {
+        return { success: false, error: "Validation failed", issues: error.errors };
+    }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to create proposal' }
   }
 } 

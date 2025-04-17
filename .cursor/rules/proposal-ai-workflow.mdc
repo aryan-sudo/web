@@ -1,0 +1,182 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Rule: AI Proposal Generator with Next.js, Supabase, and pgvector
+
+**Goal:** Implement an AI workflow using Next.js for the frontend, Supabase (PostgreSQL with pgvector) for the backend database and vector store, to automatically populate proposal templates based on uploaded client documents (RFP, SRS, etc.).
+
+---
+
+## Phase 1: Project Setup & Supabase Configuration
+
+1.  **Initialize Next.js Project:**
+    * Create a new Next.js app (TypeScript recommended): `npx create-next-app@latest --typescript my-proposal-generator`
+    * Navigate into the project directory: `cd my-proposal-generator`
+
+2.  **Setup Supabase Project:**
+    * Create a new project on [supabase.com](https://supabase.com).
+    * Enable the `pgvector` extension: Go to `Database` -> `Extensions` in your Supabase dashboard and enable `vector`.
+    * Note your Project URL and `anon` key (for client-side) / `service_role` key (for server-side operations). Store these securely (e.g., in `.env.local`).
+
+3.  **Install Dependencies:**
+    * Install Supabase client: `npm install @supabase/supabase-js`
+    * Install LangChain.js components (core, LLM integrations, Supabase integration): `npm install langchain @langchain/openai @langchain/google-genai @langchain/community @langchain/supabase` (adjust LLM providers as needed)
+    * Install utility libraries: `npm install pdf-parse mammoth` (for .pdf and .docx parsing, choose appropriate parsers) `npm install dotenv`
+
+4.  **Configure Supabase Client:**
+    * Create a utility file (e.g., `lib/supabaseClient.js` or `lib/supabaseServerClient.js`) to initialize the Supabase client using your environment variables. Ensure you use the `service_role` key for server-side operations (like inserting embeddings).
+
+5.  **Define Database Schema (SQL in Supabase SQL Editor):**
+    * **Templates Table:**
+        ```sql
+        CREATE TABLE templates (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL UNIQUE,
+          description TEXT,
+          content TEXT NOT NULL, -- Store template structure (e.g., Markdown, JSON)
+          created_at TIMESTAMPTZ DEFAULT now()
+        );
+        ```
+    * **Documents Table:** (Optional, if tracking uploaded docs)
+        ```sql
+        CREATE TABLE documents (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          file_name TEXT NOT NULL,
+          storage_path TEXT, -- Optional: If using Supabase Storage
+          proposal_request_id UUID, -- Link to a specific generation request
+          uploaded_at TIMESTAMPTZ DEFAULT now()
+        );
+        ```
+    * **Document Chunks & Embeddings Table:**
+        ```sql
+        CREATE TABLE document_chunks (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          document_id UUID REFERENCES documents(id) ON DELETE CASCADE, -- Optional link
+          proposal_request_id UUID, -- Link to a specific generation request
+          content TEXT NOT NULL,
+          embedding VECTOR(1536), -- Dimension depends on embedding model (e.g., 1536 for OpenAI text-embedding-ada-002)
+          created_at TIMESTAMPTZ DEFAULT now()
+        );
+        ```
+    * **Create `pgvector` Index:**
+        ```sql
+        CREATE INDEX ON document_chunks USING ivfflat (embedding vector_cosine_ops)
+        WITH (lists = 100); -- Adjust 'lists' based on expected data size
+        -- Or use HNSW for potentially better performance:
+        -- CREATE INDEX ON document_chunks USING hnsw (embedding vector_cosine_ops);
+        ```
+    * **Create Similarity Search Function:**
+        ```sql
+        CREATE OR REPLACE FUNCTION match_document_chunks (
+          query_embedding VECTOR(1536),
+          match_threshold FLOAT,
+          match_count INT,
+          p_request_id UUID -- Filter by proposal request ID
+        )
+        RETURNS TABLE (
+          id UUID,
+          content TEXT,
+          similarity FLOAT
+        )
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+          RETURN QUERY
+          SELECT
+            dc.id,
+            dc.content,
+            1 - (dc.embedding <=> query_embedding) AS similarity
+          FROM document_chunks dc
+          WHERE dc.proposal_request_id = p_request_id AND 1 - (dc.embedding <=> query_embedding) > match_threshold
+          ORDER BY dc.embedding <=> query_embedding
+          LIMIT match_count;
+        END;
+        $$;
+        ```
+
+## Phase 2: Backend (Next.js API Routes)
+
+6.  **Implement Template API Routes (`pages/api/templates/`):**
+    * `GET /api/templates`: List all available templates (`SELECT id, name, description FROM templates`).
+    * `GET /api/templates/[id]`: Fetch a specific template's content (`SELECT content FROM templates WHERE id = $1`).
+    * `POST /api/templates`: (Admin) Create a new template.
+    * (Optional) `PUT`, `DELETE` routes for template management.
+
+7.  **Implement Document Upload API Route (`pages/api/upload`):**
+    * Handles `multipart/form-data` requests.
+    * Parses uploaded files (PDF, DOCX, TXT) using libraries like `pdf-parse`, `mammoth`. Extract text content.
+    * *Security:* Implement proper validation and sanitization.
+    * Optionally store original files in Supabase Storage.
+    * Assign a unique `proposal_request_id` for this batch of documents.
+    * Return the extracted text content and the `proposal_request_id` to the frontend, or trigger processing directly.
+
+8.  **Implement Document Processing & Indexing API Route (`pages/api/process`):**
+    * Accepts text content (or file references) and a `proposal_request_id`.
+    * **Chunking:** Use `langchain.text_splitter` (e.g., `RecursiveCharacterTextSplitter`) to split the text into manageable chunks.
+    * **Embedding:**
+        * Instantiate an embedding model (e.g., `@langchain/openai::OpenAIEmbeddings`, `@langchain/google-genai::GoogleGenerativeAIEmbeddings`).
+        * Generate embeddings for each chunk. Handle rate limits if necessary.
+    * **Storing:** Use `supabase-js` (server-side client with `service_role` key) to batch-insert the chunks and their corresponding embeddings into the `document_chunks` table, along with the `proposal_request_id`.
+
+9.  **Implement RAG Core API Route (`pages/api/generateSection`):**
+    * Accepts a `section_query` (e.g., "Summarize project objectives") and the `proposal_request_id`.
+    * **Generate Query Embedding:** Create an embedding for the `section_query` using the same model used for documents.
+    * **Retrieve Relevant Chunks:** Use `supabase-js` to call the `match_document_chunks` SQL function with the query embedding, desired threshold, count, and `proposal_request_id`.
+    * **Prepare Context:** Combine the content of the retrieved chunks into a single context string.
+    * **Configure LLM:** Instantiate the chosen LLM (e.g., `@langchain/openai::ChatOpenAI`, `@langchain/google-genai::ChatGoogleGenerativeAI`).
+    * **Format Prompt:** Create a detailed prompt including the retrieved `context` and the `section_query`.
+    * **Call LLM:** Send the prompt to the LLM API.
+    * **Return Result:** Return the LLM's generated text for the section.
+
+## Phase 3: Frontend (Next.js React Components)
+
+10. **Create Template Selection Component:**
+    * Fetch available templates using the `GET /api/templates` endpoint.
+    * Display templates (e.g., in a dropdown or list) for the user to select. Store the selected `templateId`.
+
+11. **Create Document Upload Component:**
+    * Provide a file input (`<input type="file" multiple>`).
+    * On file selection, send the files to the `POST /api/upload` endpoint.
+    * Handle the response (get `proposal_request_id`, potentially trigger processing). Show upload/processing status.
+
+12. **Create Proposal Generation Trigger:**
+    * Add a button "Generate Proposal".
+    * On click:
+        * Fetch the selected template content (`GET /api/templates/[id]`).
+        * Parse the template content client-side (or server-side) to identify sections needing generation (e.g., find `{{section_name}}` placeholders). Determine the query/prompt for each section.
+        * For each section:
+            * Call the `POST /api/generateSection` endpoint with the section's query and the `proposal_request_id`.
+            * Display progress (e.g., "Generating Section: Scope...").
+        * Store the generated content for each section.
+
+13. **Create Proposal Display/Editor Component:**
+    * Take the original template content and the generated section texts.
+    * Replace placeholders in the template with the generated content.
+    * Display the assembled draft proposal (e.g., in a `<textarea>` or a rich text editor).
+    * Allow the user to review, edit, and copy/download the final proposal.
+
+## Phase 4: Refinement & Deployment
+
+14. **Implement Error Handling & User Feedback:**
+    * Add robust error handling to all API routes and frontend components.
+    * Provide clear loading states and feedback messages to the user during uploads, processing, and generation.
+
+15. **Optimize & Secure:**
+    * Secure API routes (authentication/authorization if needed).
+    * Validate all inputs server-side.
+    * Consider rate limiting for LLM API calls.
+    * Optimize database queries and `pgvector` indexing.
+    * Manage environment variables securely.
+
+16. **Testing:**
+    * Write unit/integration tests for API routes and key functions.
+    * Perform end-to-end testing with various document types and templates.
+    * Evaluate the quality of generated content and iterate on prompts, chunking, and retrieval parameters.
+
+17. **Deployment:**
+    * Deploy the Next.js application to a hosting provider (e.g., Vercel, Netlify, AWS Amplify). Ensure environment variables are configured correctly in the deployment environment.
+
+---
+This structure outlines the core tasks for building the proposal generator using the specified stack. Each step involves detailed implementation within Next.js and Supabase.
