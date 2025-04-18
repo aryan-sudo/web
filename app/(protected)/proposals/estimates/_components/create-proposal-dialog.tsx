@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getTemplates, initiateProposalCreation, processAndEmbedDocuments, generateProposalSections } from "../actions"
-import { CreateProposalActionInput, UploadedFile } from "../actions"
+import { getTemplates, generateProposal } from "../actions"
+import { ProposalInput, UploadedFile } from "../actions"
 import { toast } from "sonner"
 import Tiptap from "@/components/common/editor"
 
@@ -25,7 +25,7 @@ interface Template {
 export function CreateProposalDialog() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [processingStep, setProcessingStep] = useState<'idle' | 'parsing' | 'embedding' | 'generating' | 'displaying' | 'error'>('idle')
+  const [processingStep, setProcessingStep] = useState<'idle' | 'processing' | 'displaying' | 'error'>('idle')
   const [files, setFiles] = useState<File[]>([])
   const [open, setOpen] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
@@ -64,7 +64,6 @@ export function CreateProposalDialog() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/plain': ['.txt']
     }
@@ -85,86 +84,44 @@ export function CreateProposalDialog() {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    console.log("onSubmit triggered!");
-
+    
     if (!selectedTemplate) { toast.error("Please select a template."); return; }
     if (files.length === 0) { toast.error("Please upload at least one document."); return; }
+    
     setIsSubmitting(true)
     setGeneratedContent("")
-    setProcessingStep('parsing')
-
-    let proposalRequestId: string | undefined;
-    let inputData: CreateProposalActionInput | undefined;
+    setProcessingStep('processing')
+    toast.info("Processing documents and generating proposal...");
 
     try {
       const formData = new FormData(event.currentTarget)
-      toast.info("Parsing uploaded files...");
 
       const processedFiles: UploadedFile[] = await Promise.all(
         files.map(async (file) => ({
           name: file.name,
           type: file.type,
-          size: file.size,
           content: await convertFileToBase64(file)
         }))
       )
 
-      inputData = {
+      const inputData: ProposalInput = {
         title: formData.get('title') as string,
         client: formData.get('client') as string,
-        type: formData.get('type') as "proposal" | "estimate",
-        value: formData.get('value') ? Number(formData.get('value')) : undefined,
-        dueDate: formData.get('dueDate') as string || undefined,
+        companyName: formData.get('companyName') as string || "Our Company",
         templateId: selectedTemplate,
         files: processedFiles
       }
 
-      const initiationResult = await initiateProposalCreation(inputData)
+      const result = await generateProposal(inputData)
 
-      if (!initiationResult.success || !initiationResult.proposalRequestId || !initiationResult.extractedText) {
+      if (!result.success || !result.generatedContent) {
         setProcessingStep('error');
-        toast.error(initiationResult.error || "Failed to parse documents or extract text.");
+        toast.error(result.error || "Failed to generate proposal content.");
         setIsSubmitting(false);
         return;
       }
 
-      proposalRequestId = initiationResult.proposalRequestId;
-      const documentsText = initiationResult.extractedText;
-
-      console.log("Initiation successful, Request ID:", proposalRequestId)
-      toast.success("Files parsed successfully. Starting embedding...");
-      setProcessingStep('embedding');
-
-      const embeddingResult = await processAndEmbedDocuments({
-        proposalRequestId: proposalRequestId,
-        documentsText: documentsText
-      });
-
-      if (!embeddingResult.success) {
-        setProcessingStep('error');
-        toast.error(embeddingResult.error || "Failed to embed documents.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      toast.success("Embedding complete. Starting generation...");
-      setProcessingStep('generating');
-
-      const generationResult = await generateProposalSections({ 
-        proposalRequestId: proposalRequestId, 
-        templateId: selectedTemplate,
-        clientName: inputData.client,
-        projectTitle: inputData.title,
-      });
-
-      if (!generationResult.success || !generationResult.generatedContent) {
-        setProcessingStep('error');
-        toast.error(generationResult.error || "Failed to generate proposal content.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      setGeneratedContent(generationResult.generatedContent);
+      setGeneratedContent(result.generatedContent);
       setProcessingStep('displaying');
       toast.success("Proposal generated successfully!");
       setIsSubmitting(false);
@@ -179,11 +136,9 @@ export function CreateProposalDialog() {
   }
 
   const getSubmitButtonText = () => {
-    if (processingStep === 'parsing') return "Parsing Files..."
-    if (processingStep === 'embedding') return "Embedding Documents..."
-    if (processingStep === 'generating') return "Generating Content..."
+    if (processingStep === 'processing') return "Generating Proposal..."
     if (isSubmitting) return "Processing..."
-    return "Initiate & Generate"
+    return "Generate Proposal"
   }
 
   return (
@@ -197,12 +152,12 @@ export function CreateProposalDialog() {
       <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4 space-y-1 flex-shrink-0 border-b">
           <DialogTitle className="text-2xl font-semibold tracking-tight">
-            {processingStep === 'displaying' ? "Generated Proposal/Estimate" : "Initiate Proposal Creation"}
+            {processingStep === 'displaying' ? "Generated Proposal" : "Create New Proposal"}
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
             {processingStep === 'displaying' 
               ? "Review the generated content below. You can copy or edit it further outside this dialog."
-              : "Fill details, select template, and upload documents to start generation."
+              : "Fill details, select template, and upload documents to generate a proposal."
             }
           </DialogDescription>
         </DialogHeader>
@@ -237,38 +192,20 @@ export function CreateProposalDialog() {
              </div>
  
              <div className="space-y-1.5">
-               <Label htmlFor="title">Title</Label>
-               <Input id="title" name="title" placeholder="Enter document title" required disabled={isSubmitting}/>
+               <Label htmlFor="title">Project Title</Label>
+               <Input id="title" name="title" placeholder="Enter project title" required disabled={isSubmitting}/>
              </div>
              <div className="space-y-1.5">
-               <Label htmlFor="client">Client</Label>
+               <Label htmlFor="client">Client Name</Label>
                <Input id="client" name="client" placeholder="Enter client name" required disabled={isSubmitting}/>
              </div>
              <div className="space-y-1.5">
-                <Label>Type</Label>
-                <Select name="type" defaultValue="proposal" required disabled={isSubmitting}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="proposal">Proposal</SelectItem>
-                    <SelectItem value="estimate">Estimate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-             <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-1.5">
-                 <Label htmlFor="value">Value</Label>
-                 <Input id="value" name="value" type="number" placeholder="Enter value" disabled={isSubmitting}/>
-               </div>
-               <div className="space-y-1.5">
-                 <Label htmlFor="dueDate">Due Date</Label>
-                 <Input id="dueDate" name="dueDate" type="date" disabled={isSubmitting}/>
-               </div>
+               <Label htmlFor="companyName">Your Company Name</Label>
+               <Input id="companyName" name="companyName" placeholder="Enter your company name" required disabled={isSubmitting}/>
              </div>
- 
+
             <div className="space-y-1.5">
-               <Label>RFP/Source Documents</Label>
+               <Label>Source Documents</Label>
                <div
                  {...getRootProps()}
                  className={cn(
@@ -286,7 +223,7 @@ export function CreateProposalDialog() {
                       {isDragActive ? "Drop the files here" : "Drag & drop files here"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      or click to select (PDF, DOCX, TXT)
+                      or click to select (DOCX, TXT only)
                     </p>
                   </div>
                 </div>
