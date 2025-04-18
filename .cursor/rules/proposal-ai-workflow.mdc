@@ -16,7 +16,7 @@ alwaysApply: false
     * Navigate into the project directory: `cd my-proposal-generator`
 
 2.  **Setup Supabase Project:**
-    * Create a new project on [supabase.com](https://supabase.com).
+    * Create a new project on [supabase.com](mdc:https:/supabase.com).
     * Enable the `pgvector` extension: Go to `Database` -> `Extensions` in your Supabase dashboard and enable `vector`.
     * Note your Project URL and `anon` key (for client-side) / `service_role` key (for server-side operations). Store these securely (e.g., in `.env.local`).
 

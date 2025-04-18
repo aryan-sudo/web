@@ -194,9 +194,9 @@ export function CreateProposalDialog() {
           Create New
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] min-h-[70vh] flex flex-col">
-        <DialogHeader className="space-y-1 flex-shrink-0">
-          <DialogTitle className="text-2xl font-bold tracking-tight">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 space-y-1 flex-shrink-0 border-b">
+          <DialogTitle className="text-2xl font-semibold tracking-tight">
             {processingStep === 'displaying' ? "Generated Proposal/Estimate" : "Initiate Proposal Creation"}
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
@@ -208,16 +208,18 @@ export function CreateProposalDialog() {
         </DialogHeader>
 
         {processingStep === 'displaying' ? (
-          <div className="flex-grow overflow-y-auto border rounded-md p-4 bg-background">
-            {generatedContent ? (
-                <Tiptap content={generatedContent} />
-            ) : (
-              <p className="text-center text-muted-foreground">No content was generated.</p>
-            )}
+          <div className="flex-grow overflow-y-auto overflow-x-hidden p-6 border-t">
+              {generatedContent ? (
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <Tiptap content={generatedContent} />
+                  </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-10">No content was generated.</p>
+              )}
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-5 overflow-y-auto flex-grow pr-2">
-            <div className="space-y-2">
+          <form onSubmit={onSubmit} className="flex-grow overflow-y-auto px-6 py-4 space-y-4">
+            <div className="space-y-1.5">
                <Label htmlFor="template">Template</Label>
                <Select value={selectedTemplate} onValueChange={setSelectedTemplate} required name="templateId" disabled={isSubmitting}>
                  <SelectTrigger id="template">
@@ -234,15 +236,15 @@ export function CreateProposalDialog() {
                </Select>
              </div>
  
-             <div className="space-y-2">
+             <div className="space-y-1.5">
                <Label htmlFor="title">Title</Label>
                <Input id="title" name="title" placeholder="Enter document title" required disabled={isSubmitting}/>
              </div>
-             <div className="space-y-2">
+             <div className="space-y-1.5">
                <Label htmlFor="client">Client</Label>
                <Input id="client" name="client" placeholder="Enter client name" required disabled={isSubmitting}/>
              </div>
-             <div className="space-y-2">
+             <div className="space-y-1.5">
                 <Label>Type</Label>
                 <Select name="type" defaultValue="proposal" required disabled={isSubmitting}>
                   <SelectTrigger>
@@ -255,32 +257,31 @@ export function CreateProposalDialog() {
                 </Select>
               </div>
              <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
+               <div className="space-y-1.5">
                  <Label htmlFor="value">Value</Label>
                  <Input id="value" name="value" type="number" placeholder="Enter value" disabled={isSubmitting}/>
                </div>
-               <div className="space-y-2">
+               <div className="space-y-1.5">
                  <Label htmlFor="dueDate">Due Date</Label>
                  <Input id="dueDate" name="dueDate" type="date" disabled={isSubmitting}/>
                </div>
              </div>
  
-            <div className="space-y-2">
+            <div className="space-y-1.5">
                <Label>RFP/Source Documents</Label>
                <div
                  {...getRootProps()}
                  className={cn(
-                   "relative border-2 border-dashed rounded-lg p-8 transition-colors",
-                   isSubmitting ? "cursor-not-allowed bg-muted/30" : "hover:bg-muted/50 cursor-pointer",
+                   "relative flex flex-col items-center justify-center space-y-3 border-2 border-dashed rounded-lg p-8 transition-colors",
+                   isSubmitting ? "cursor-not-allowed bg-muted/30 opacity-50" : "hover:bg-muted/50 cursor-pointer",
                    isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
                  )}
                >
                  <input {...getInputProps()} disabled={isSubmitting}/>
-                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                  <div className="rounded-full border border-dashed bg-muted p-2">
+                 <div className="rounded-full border border-dashed bg-background p-2">
                     <Upload className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-center">
                     <p className="text-sm font-medium">
                       {isDragActive ? "Drop the files here" : "Drag & drop files here"}
                     </p>
@@ -289,7 +290,6 @@ export function CreateProposalDialog() {
                     </p>
                   </div>
                 </div>
-               </div>
                {files.length > 0 && (
                  <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                    <p className="font-medium">Selected files:</p>
@@ -302,7 +302,7 @@ export function CreateProposalDialog() {
                )}
              </div>
 
-            <div className="flex justify-end pt-2 border-t mt-4">
+            <div className="flex justify-end pt-4 flex-shrink-0 sticky bottom-0 bg-background pb-4">
               <Button 
                 type="submit" 
                 size="lg" 
@@ -315,7 +315,7 @@ export function CreateProposalDialog() {
           </form>
         )}
 
-        <div className="flex justify-end pt-4 flex-shrink-0 border-t mt-4">
+        <div className="flex justify-end p-6 pt-4 flex-shrink-0 border-t">
           {processingStep === 'displaying' && (
             <Button 
               type="button" 

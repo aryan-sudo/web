@@ -329,8 +329,8 @@ export async function processAndEmbedDocuments({ proposalRequestId, documentsTex
 
   try {
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 150,
+      chunkSize: 500,
+      chunkOverlap: 100,
     });
     let docs = await splitter.createDocuments([documentsText]);
     console.log(`Split text into ${docs.length} chunks.`);
@@ -400,22 +400,28 @@ interface GenerateInput {
   projectTitle?: string;
 }
 
-// Basic prompt template for generating a section based on context
+// Prompt template refinement 3
 const sectionPromptTemplate = new PromptTemplate({
-  template: `You are an expert proposal writer assisting a user.
-  You are working on a proposal titled "{projectTitle}" for the client "{clientName}".
-  Based *only* on the following provided context from relevant documents, generate the content for the requested section.
-  Do not add any information not present in the context.
-  If the context is empty or insufficient, state that you cannot generate the section based on the provided documents.
-  Keep the output concise and relevant to the section topic.
-
-  Context:
+  template: `Act as an expert proposal writer creating a compelling draft for a proposal titled "{projectTitle}" for the client "{clientName}".
+  
+  Your task is to generate the content **only for the section: "{section_query}"**. 
+  Focus *exclusively* on information relevant to this specific section query.
+  
+  Use the following potentially relevant context retrieved from source documents as inspiration and grounding:
+  --- START CONTEXT ---
   {context}
+  --- END CONTEXT ---
+  
+  Instructions:
+  - Write a comprehensive and professional section body for "{section_query}".
+  - Elaborate on key points found *within the provided context* that are directly relevant to the section query.
+  - If specific details are missing, make reasonable assumptions *relevant to the section's topic* or state that details will be finalized later. Generate a plausible section body.
+  - **CRITICAL: Do NOT mention or reference other section numbers or the overall proposal structure unless the provided context explicitly does so.** Focus only on the content for *this* section.
+  - Ensure the tone is confident and professional.
+  - Structure the output clearly, using paragraphs and bullet points where appropriate.
 
-  Section to Generate:
-  {section_query}
-
-  Generated Content:`,
+  Generated Section Content for "{section_query}":
+`,
   inputVariables: ["context", "section_query", "projectTitle", "clientName"],
 });
 
@@ -458,28 +464,35 @@ export async function generateProposalSections({ proposalRequestId, templateId, 
     }
     let templateContent = templateData.content;
 
-    // 2. Initialize Embeddings and LLM
+    // 2. Pre-fill Simple Placeholders
+    const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    templateContent = templateContent.replace(/{{(?:\s*)clientName(?:\s*)}}/g, clientName || "[Client Name]");
+    templateContent = templateContent.replace(/{{(?:\s*)projectTitle(?:\s*)}}/g, projectTitle || "[Project Title]");
+    templateContent = templateContent.replace(/{{(?:\s*)currentDate(?:\s*)}}/g, currentDate);
+    console.log("Pre-filled simple placeholders.");
+
+    // 3. Initialize Embeddings and LLM
     const embeddings = new GoogleGenerativeAIEmbeddings({ apiKey, modelName: "text-embedding-004" });
-    const llm = new ChatGoogleGenerativeAI({ apiKey, model: "gemini-1.5-flash-latest" });
+    const llm = new ChatGoogleGenerativeAI({ apiKey, model: "gemini-1.5-flash-latest" }); 
     const outputParser = new StringOutputParser();
     const chain = sectionPromptTemplate.pipe(llm).pipe(outputParser);
 
-    // 3. Find placeholders in the template
+    // 4. Find remaining placeholders (for RAG generation)
     const placeholderRegex = /{{\s*([\w_]+)\s*}}/g;
     const placeholders = [...templateContent.matchAll(placeholderRegex)];
 
     if (placeholders.length === 0) {
-       console.log("No placeholders found in the template.");
-       return { success: true, generatedContent: templateContent }; // Return original template if no placeholders
+       console.log("No RAG placeholders found after pre-fill.");
+       return { success: true, generatedContent: templateContent };
     }
     
-    console.log(`Found ${placeholders.length} placeholders to generate.`);
+    console.log(`Found ${placeholders.length} RAG placeholders to generate.`);
 
-    // 4. Process each placeholder
+    // 5. Process each remaining placeholder
     for (const match of placeholders) {
-      const placeholder = match[0]; // e.g., {{project_overview}}
-      const sectionKey = match[1]; // e.g., project_overview
-      console.log(`Processing placeholder: ${placeholder}`);
+      const placeholder = match[0]; 
+      const sectionKey = match[1]; 
+      console.log(`Processing RAG placeholder: ${placeholder}`);
 
       const sectionQuery = sectionQueryMapping[sectionKey] || `Generate content for the section: ${sectionKey}`;
       
@@ -490,8 +503,8 @@ export async function generateProposalSections({ proposalRequestId, templateId, 
           // 4b. Retrieve context from Supabase
           const { data: chunks, error: rpcError } = await supabase.rpc('match_document_chunks', {
             query_embedding: queryEmbedding,
-            match_threshold: 0.5,
-            match_count: 5,
+            match_threshold: 0.5, 
+            match_count: 5, // Reduced chunk count
             p_request_id: proposalRequestId
           });
 
@@ -502,21 +515,21 @@ export async function generateProposalSections({ proposalRequestId, templateId, 
 
           const context = chunks && chunks.length > 0 
               ? chunks.map((chunk: { content: string }) => chunk.content).join("\n\n") 
-              : "No relevant context found in documents.";
+              : "No specific context found for this section in the documents.";
           
-          console.log(`Retrieved ${chunks?.length || 0} chunks for section ${sectionKey}. Context length: ${context.length}`);
+          console.log(`Retrieved ${chunks?.length || 0} chunks for section ${sectionKey}.`);
 
-          // 4c. Call LLM to generate section content
+          // Call LLM chain
           const generatedSection = await chain.invoke({ 
               context: context,
               section_query: sectionQuery,
               projectTitle: projectTitle || "",
-              clientName: clientName || ""
+              clientName: clientName || "" 
           });
           
           console.log(`Generated content for ${sectionKey}`);
 
-          // 4d. Replace placeholder in template
+          // Replace placeholder
           templateContent = templateContent.replace(placeholder, generatedSection.trim());
 
       } catch (sectionError) {
@@ -526,7 +539,7 @@ export async function generateProposalSections({ proposalRequestId, templateId, 
       }
     }
 
-    // 5. Return assembled content
+    // 6. Return assembled content
     return { success: true, generatedContent: templateContent };
 
   } catch (error) {
