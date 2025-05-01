@@ -7,7 +7,7 @@ export const leadSchema = z.object({
   company: z.string(),
   status: z.string(),
   source: z.string(),
-  lastContact: z.string(),
+  lastcontact: z.string(),
 })
 
 export type Lead = z.infer<typeof leadSchema>

@@ -173,11 +173,11 @@ export function CreateProposalDialog() {
               )}
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="flex-grow overflow-y-auto px-6 py-4 space-y-4">
+          <form onSubmit={onSubmit} className="flex-grow overflow-y-auto px-6 py-4 space-y-8">
             <div className="space-y-1.5">
                <Label htmlFor="template">Template</Label>
                <Select value={selectedTemplate} onValueChange={setSelectedTemplate} required name="templateId" disabled={isSubmitting}>
-                 <SelectTrigger id="template">
+                 <SelectTrigger className="w-full" id="template">
                    <SelectValue placeholder="Select a template..." />
                  </SelectTrigger>
                  <SelectContent>
@@ -252,8 +252,8 @@ export function CreateProposalDialog() {
           </form>
         )}
 
-        <div className="flex justify-end p-6 pt-4 flex-shrink-0 border-t">
           {processingStep === 'displaying' && (
+        <div className="flex justify-end p-6 pt-4 flex-shrink-0 border-t">
             <Button 
               type="button" 
               variant="outline" 
@@ -262,8 +262,8 @@ export function CreateProposalDialog() {
             >
               Close
             </Button>
-          )}
         </div>
+          )}
       </DialogContent>
     </Dialog>
   )

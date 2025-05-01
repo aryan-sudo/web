@@ -100,11 +100,15 @@ export const columns: ColumnDef<Lead>[] = [
     },
   },
   {
-    accessorKey: "lastContact",
+    accessorKey: "lastcontact",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last Contact" />
     ),
-    cell: ({ row }) => <div>{row.getValue("lastContact")}</div>,
+    cell: ({ row }) => {
+      const dateString = row.getValue("lastcontact") as string | undefined;
+      const formattedDate = dateString ? dateString.split('T')[0] : 'N/A';
+      return <div>{formattedDate}</div>;
+    },
   },
   {
     id: "actions",

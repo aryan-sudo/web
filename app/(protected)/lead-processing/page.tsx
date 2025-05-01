@@ -1,12 +1,12 @@
-import { promises as fs } from "fs"
-import path from "path"
+// import { promises as fs } from "fs"
+// import path from "path"
 import { Metadata } from "next"
 import Image from "next/image"
 import { z } from "zod"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-
+import { supabase } from "@/lib/supabaseClient"
 import { columns } from "./_components/columns"
 import { DataTable } from "./_components/data-table"
 import { leadSchema } from "./data/schema"
@@ -16,16 +16,38 @@ export const metadata: Metadata = {
   description: "Manage and track leads through the sales pipeline.",
 }
 
+// // Simulate a database read for leads.
+// async function getLeads() {
+//   const data = await fs.readFile(
+//     path.join(process.cwd(), "app/(protected)/lead-processing/data/leads.json")
+//   )
+
+//   const leads = JSON.parse(data.toString())
+
+//   return z.array(leadSchema).parse(leads)
+// }
+
 // Simulate a database read for leads.
 async function getLeads() {
-  const data = await fs.readFile(
-    path.join(process.cwd(), "app/(protected)/lead-processing/data/leads.json")
-  )
+  const { data, error } = await supabase
+    .from('leads') // Assuming table name is 'leads'
+    .select('*')
 
-  const leads = JSON.parse(data.toString())
+  if (error) {
+    console.error("Error fetching leads:", error)
+    return []
+  }
 
-  return z.array(leadSchema).parse(leads)
+  try {
+    // Validate data against the schema
+    return z.array(leadSchema).parse(data)
+  } catch (validationError) {
+    console.error("Error validating leads data:", validationError)
+    return []
+  }
 }
+
+
 
 export default async function LeadProcessingPage() {
   const leads = await getLeads()

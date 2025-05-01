@@ -45,21 +45,17 @@ export async function generateProposal(input: ProposalInput) {
       return { success: false, error: "Template not found" }
     }
     
-    // 3. Extract placeholders
-    const placeholders = extractPlaceholders(template.content)
-    
-    // 4. Generate content
+    // 3. Generate content with entire template
     const generatedContent = await generateContent({
       documentsText,
-      placeholders,
       templateContent: template.content,
       companyName: validatedInput.companyName,
       clientName: validatedInput.client,
       projectTitle: validatedInput.title
     })
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       generatedContent
     }
   } catch (error) {
@@ -111,92 +107,68 @@ async function getTemplate(templateId: string) {
 }
 
 /**
- * Extract placeholders from template content
+ * Extract placeholders from template content (Deprecated - now using whole template approach)
+ * We're keeping this for reference in case we need it in the future
  */
-function extractPlaceholders(templateContent: string): string[] {
-  const placeholderRegex = /{{\s*([\w_]+)\s*}}/g
-  const matches = [...templateContent.matchAll(placeholderRegex)]
-  const placeholders = matches.map(match => match[1])
-  return [...new Set(placeholders)] // Remove duplicates
-}
+// function extractPlaceholders(templateContent: string): string[] {
+//   const placeholderRegex = /{{\s*([\w_]+)\s*}}/g
+//   const matches = [...templateContent.matchAll(placeholderRegex)]
+//   const placeholders = matches.map(match => match[1])
+//   return [...new Set(placeholders)] // Remove duplicates
+// }
 
 /**
- * Generate content for placeholders using direct prompting
+ * Generate content for a complete template using direct prompting
  */
 async function generateContent({
   documentsText,
-  placeholders,
   templateContent,
   companyName,
   clientName,
   projectTitle
 }: {
   documentsText: string,
-  placeholders: string[],
+  placeholders?: string[], // Optional parameter we no longer use
   templateContent: string,
   companyName: string,
   clientName: string,
   projectTitle: string
 }): Promise<string> {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  
+
   if (!apiKey) {
     throw new Error("Missing API key")
   }
   
-  // 1. Handle simple replacements directly
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    year: 'numeric', month: 'long', day: 'numeric' 
-  })
-  
-  const basicReplacements: Record<string, string> = {
-    'clientName': clientName,
-    'projectTitle': projectTitle,
-    'currentDate': currentDate,
-    'companyName': companyName,
-    'company_name': companyName,
-  }
-  
-  let result = templateContent
-  
-  // Apply basic replacements
-  Object.entries(basicReplacements).forEach(([key, value]) => {
-    result = result.replace(
-      new RegExp(`{{\\s*${key}\\s*}}`, 'g'), 
-      value
-    )
-  })
-  
-  // 2. Get remaining placeholders
-  const remainingPlaceholders = placeholders.filter(p => !Object.keys(basicReplacements).includes(p))
-  
-  if (remainingPlaceholders.length === 0) {
-    return result
-  }
-  
-  // 3. Build prompt for AI
+  // Build prompt for AI with entire template
   const promptText = `You are a senior proposal writer at ${companyName}.
 
-DOCUMENTS:
+SOURCE DOCUMENTS:
 ${documentsText}
 
 CLIENT: ${clientName}
 PROJECT: ${projectTitle}
+COMPANY: ${companyName}
 
 TASK:
-Fill in the following placeholders for a proposal template:
-${remainingPlaceholders.map(p => `- ${p}`).join('\n')}
+I have a proposal template with placeholders in {{placeholder}} format.
+Your job is to generate a complete proposal by filling in ALL placeholders with appropriate content based on the source documents.
+Return the ENTIRE template with all placeholders replaced.
+Maintain the same structure and formatting as the original template.
 
-For each placeholder, provide ONLY the content that should replace it.
-Keep your responses concise and professional.
-Format your response as JSON:
-{
-  ${remainingPlaceholders.map(p => `"${p}": "Your content for ${p}"`).join(',\n  ')}
-}`
+The template is in markdown format and will be rendered in a markdown editor.
+Make sure all content you generate is valid markdown.
+Use proper markdown formatting for headings, lists, emphasis, links, etc.
 
-  // 4. Call AI API
+Here is the template:
+
+${templateContent}
+
+IMPORTANT: Return the COMPLETE filled template with valid markdown formatting, not just individual sections.`
+
+  // Call AI API
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
   const aiResponse = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: promptText }] }],
     generationConfig: {
@@ -206,48 +178,36 @@ Format your response as JSON:
   })
   
   const responseText = aiResponse.response.text()
+  console.log(responseText, "responseText")
   
-  // 5. Extract and apply generated content
-  try {
-    // Extract JSON
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error("Failed to extract JSON from AI response")
-    }
-    
-    const generatedContent = JSON.parse(jsonMatch[0])
-    
-    // Replace placeholders
-    for (const placeholder of remainingPlaceholders) {
-      if (generatedContent[placeholder]) {
-        result = result.replace(
-          new RegExp(`{{\\s*${placeholder}\\s*}}`, 'g'), 
-          generatedContent[placeholder]
-        )
-      } else {
-        // Fallback for missing content
-        result = result.replace(
-          new RegExp(`{{\\s*${placeholder}\\s*}}`, 'g'), 
-          `[Insert ${placeholder}]`
-        )
-      }
-    }
-    
-    return result
-  } catch (error) {
-    console.error("Failed to parse AI response:", error)
-    
-    // Fallback: replace remaining placeholders with generic text
-    for (const placeholder of remainingPlaceholders) {
-      result = result.replace(
-        new RegExp(`{{\\s*${placeholder}\\s*}}`, 'g'), 
-        `[Content for ${placeholder} will be provided]`
-      )
-    }
-    
-    return result
-  }
+  // Clean up the response - sometimes the AI might wrap the content in code blocks
+  const cleanedResponse = responseText.replace(/^```(?:markdown|md)?\n([\s\S]*)\n```$/m, '$1');
+  console.log(cleanedResponse, "cleanedResponse")
+  return cleanedResponse;
 }
+
+/**
+ * Ensure content is in HTML format for Tiptap (Deprecated - keeping for reference)
+ * This function is no longer used as we're getting the complete template from the AI
+ */
+// function ensureHtmlFormat(content: string, isHtmlTemplate: boolean): string {
+//   if (isHtmlTemplate) {
+//     // Cleanup any potential script tags for security
+//     content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+//     return content;
+//   }
+//   
+//   // If not already HTML, convert plain text to HTML with paragraphs
+//   if (!content.includes('<html') && !content.includes('<body') && !content.includes('<p>')) {
+//     return content
+//       .split('\n\n')
+//       .map(paragraph => paragraph.trim() ? `<p>${paragraph}</p>` : '')
+//       .join('')
+//       .replace(/\n/g, '<br>');
+//   }
+//   
+//   return content;
+// }
 
 // Export getTemplates function for the UI
 export async function getTemplates() {
